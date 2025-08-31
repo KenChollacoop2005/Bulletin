@@ -61,7 +61,7 @@
 
     .poster-active {
       left: 50% !important; top: 50% !important;
-      transform: translate(-50%, -50%) scale(2) !important;
+      transform: translate(-50%, -50%) scale(3.3) !important;
       z-index: 100 !important;
       cursor: default;
     }
@@ -104,9 +104,17 @@
        ========================= */
     .paperclip-container { position: absolute; bottom: 4px; right: -1px; z-index: 5; opacity: 1;
       pointer-events: none; cursor: default; }
-    .paperclip { width: 28px; height: 28px; transform: rotate(-90deg);
-      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45)); }
-    .paperclip svg { width: 36px; height: 36px; overflow: visible; }
+.paperclip { 
+  width: 14px;   
+  height: 14px;  
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45)); 
+}
+.paperclip svg { 
+  width: 18px;   
+  height: 18px;  
+  overflow: visible;
+}
 
     /* KEYFRAMES for idle animation */
     @keyframes clip-glow {
