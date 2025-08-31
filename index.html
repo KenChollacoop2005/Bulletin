@@ -58,13 +58,23 @@
       transform: scale(1.02);
       filter: drop-shadow(0 0 10px rgba(255, 255, 200, 0.8));
     }
-
-    .poster-active {
-      left: 50% !important; top: 50% !important;
-      transform: translate(-50%, -50%) scale(3.3) !important;
-      z-index: 100 !important;
-      cursor: default;
-    }
+    .card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+.poster-active {
+  left: 50% !important; top: 50% !important;
+  transform: translate(-50%, -50%) scale(3.3) translateZ(0) !important;
+  z-index: 100 !important;
+  cursor: default;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
     .has-active .poster:not(.poster-active) { filter: blur(10px) opacity(0.7); }
     .has-active .poster-active { filter: none !important; opacity: 1 !important; }
 
@@ -90,9 +100,15 @@
        Name Card
        ========================= */
     .poster.name-card-stack { background: transparent; padding: 0; box-shadow: none; position: relative; }
-    .name-card-page { position: absolute; inset: 0; display: flex; flex-direction: column;
-      transition: transform 0.6s ease, opacity 0.6s ease, box-shadow 0.6s ease;
-      will-change: transform, opacity; background-size: cover; background-position: center; }
+    .name-card-page { 
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  transition: transform 0.6s ease, opacity 0.6s ease, box-shadow 0.6s ease;
+  will-change: transform, opacity; background-size: cover; background-position: center;
+  image-rendering: -webkit-optimize-contrast; /* Safari/Chrome */
+  image-rendering: crisp-edges;               /* Firefox */
+  backface-visibility: hidden;
+  transform: translateZ(0);                   /* forces GPU */
+}
     .name-card-page.is-front { z-index: 2; transform: rotate(0deg) translate(0,0);
       box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
     .name-card-page.is-back  { z-index: 1; transform: rotate(-4deg) translate(-8px, 8px);
@@ -102,20 +118,26 @@
     /* =========================
        Paperclip
        ========================= */
-    .paperclip-container { position: absolute; bottom: 4px; right: -1px; z-index: 5; opacity: 1;
-      pointer-events: none; cursor: default; }
-.paperclip { 
-  width: 14px;   
-  height: 14px;  
-  transform: rotate(-90deg);
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45)); 
+    .paperclip-container { position: absolute; bottom: -7px; right: 3px; z-index: 5; opacity: 1;
+      pointer-events: none; cursor: default; } /*paperclip location, paperclip move, paperclip position: botoom and right*/ 
+.paperclip {
+  width: 22px;  /* matches visual size */
+  height: 22px;
+  transform: rotate(-90deg) scale(0.33) translateZ(0);
+  transform-origin: center;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45));
+  backface-visibility: hidden;
+  will-change: transform;
 }
-.paperclip svg { 
-  width: 18px;   
-  height: 18px;  
+.paperclip svg {
+  width: 66px;   /* draw it BIG (3x original) */
+  height: 66px;
   overflow: visible;
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
-
     /* KEYFRAMES for idle animation */
     @keyframes clip-glow {
       0%, 100% { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45)) drop-shadow(0 0 0px gold); }
@@ -176,21 +198,23 @@
       <!-- Poster 4: Name Card -->
       <div class="poster name-card-stack" style="top: 50%; left: 56%; transform: translate(-50%, -50%) rotate(2deg); width: 191.25px; height: 247.5px;">
 
-        <!-- Back page -->
-        <div class="name-card-page page-back is-back" style="background:#e6b980;">
-          <!-- Back content could also be an image later -->
-          <div class="paperclip-container">
-            <div class="paperclip">
-              <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22 10v15a6 6 0 1 1-12 0V12a8 8 0 1 1 16 0v14a10 10 0 1 1-20 0V11"
-                      stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
+<!-- Back page with your PNG -->
+<div class="name-card-page page-back is-back">
+  <img src="Assets/NamecardBack.png" alt="Namecard Back" class="card-img" />
+  <div class="paperclip-container">
+    <div class="paperclip">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 10v15a6 6 0 1 1-12 0V12a8 8 0 1 1 16 0v14a10 10 0 1 1-20 0V11"
+              stroke="#6b7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
 
         <!-- Front page with your PNG -->
-        <div class="name-card-page page-front is-front" style="background-image: url('Assets/Namecard.png');">
+        <div class="name-card-page page-front is-front">
+  <img src="Assets/Namecard.png" alt="Namecard Front" class="card-img" />
           <div class="paperclip-container">
             <div class="paperclip">
               <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
