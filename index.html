@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Corkboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --panelW: 120px;  /* width of one pamphlet panel */
+      --panelH: 192px;  /* height of pamphlet */
+    }
+
+    body {
+      overflow: hidden;
+      background-color: #111;
+      perspective: 1000px;
+    }
+    .scene-container {
+      width: 100vw; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      transition: all 0.8s cubic-bezier(0.68,-0.55,0.265,1.55);
+    }
+
+    /* =========================
+       Corkboard size + style
+       ========================= */
+    .corkboard {
+      position: relative;
+      width: 1200px;   /* 🔧 Change corkboard width here */
+      height: 900px;   /* 🔧 Change corkboard height here */
+      aspect-ratio: 3 / 2;
+      border: 20px solid #8B4513;
+      border-image: linear-gradient(to bottom,#8B4513 0%, #A0522D 20%, #8B4513 40%, #A0522D 60%, #8B4513 80%, #A0522D 100%) 1;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.3);
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease;
+    }
+
+    .corkboard::before {
+      content: "";
+      position: absolute; inset: 0;
+      background-color: #a37a42;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.1) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 2px, transparent 2px);
+      background-size: 50px 33px;
+      z-index: 0;
+    }
+
+    .pin, .poster { position: absolute; z-index: 1; }
+    .pin {
+      width: 8px; height: 8px; background-color: #555; border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .pin::after {
+      content: ''; position: absolute; top: -4px; left: 2px;
+      width: 4px; height: 10px; background-color: #888; border-radius: 2px;
+      transform: rotate(15deg);
+    }
+
+    .poster {
+      background-color: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      transform-origin: center;
+      display: flex; flex-direction: column;
+      padding: 8px;
+    }
+    .poster h2 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+    .poster p  { font-size: 0.9rem; line-height: 1.2rem; }
+
+    /* Hover glow effect */
+    .zoomed-in .poster:hover {
+      transform: scale(1.02);
+      filter: drop-shadow(0 0 10px rgba(255, 255, 200, 0.8));
+    }
+
+    .poster-active {
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) scale(2) !important;
+      z-index: 100 !important;
+      cursor: default;
+    }
+
+    /* Blur only other posters while one is active */
+    .has-active .poster:not(.poster-active) {
+      filter: blur(10px) opacity(0.7);
+    }
+    .has-active .poster-active {
+      filter: none !important; opacity: 1 !important;
+    }
+
+    /* Font assignments */
+    .poster-1 { font-family: Arial, sans-serif; }
+    .poster-2 { font-family: "Times New Roman", serif; }
+    .poster-3 { font-family: "Courier New", monospace; }
+
+    /* =========================
+       Pamphlet (Poster 1)
+       ========================= */
+    .pamphlet {
+      padding: 0;
+      width: var(--panelW);
+      height: var(--panelH);
+      overflow: visible;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+      background: transparent;
+    }
+
+    .pamphlet .panel {
+      position: absolute; top: 0;
+      width: var(--panelW); height: var(--panelH);
+      transform-style: preserve-3d;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.8s ease;
+      backface-visibility: hidden;
+    }
+    .panel .face {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 8px;
+      backface-visibility: hidden;
+    }
+    .panel .face.back { transform: rotateY(180deg); }
+
+    .panel.left  { transform-origin: right center; left: 0; z-index: 2; }
+    .panel.right { transform-origin: left center;  left: 0; z-index: 1; }
+
+    .pamphlet:not(.open) .panel.left  { transform: rotateY(0deg);  }
+    .pamphlet:not(.open) .panel.right { transform: rotateY(0deg);  }
+
+    .pamphlet.open .panel.left  { transform: rotateY(180deg); }
+    .pamphlet.open .panel.right { transform: rotateY(0deg);   }
+
+    /* =========================
+       Name Card (Poster 4)
+       ========================= */
+    .poster.name-card .newspaper {
+      background: #f9f9f2;
+      border: 1px solid #111;
+      padding: 12px;
+      font-family: "Times New Roman", serif;
+      font-size: 14px;
+      line-height: 1.4;
+      text-align: left;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      width: 100%;
+      height: 100%;
+    }
+    .poster.name-card .headline {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .poster.name-card .subhead {
+      font-size: 12px;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene-container">
+    <div class="corkboard">
+
+      <!-- Poster 1: Pamphlet -->
+      <!-- 🔧 Change position & rotation here -->
+      <div class="poster pamphlet poster-1" style="top: 25%; left: 25%; transform: rotate(-2deg);">
+        <div class="panel left">
+          <div class="face front" style="background:#f2f2f2;">
+            <h2>Cover</h2>
+            <p>Pamphlet front when folded shut.</p>
+          </div>
+          <div class="face back" style="background:#fff;">
+            <h2>Inside Right</h2>
+            <p>Opens outward to the right.</p>
+          </div>
+        </div>
+        <div class="panel right">
+          <div class="face front" style="background:#fff;">
+            <h2>Inside Left</h2>
+            <p>Main inside content goes here.</p>
+          </div>
+          <div class="face back" style="background:#fafafa;">
+            <h2>Back</h2>
+            <p>Back side of pamphlet.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Poster 2 -->
+      <!-- 🔧 Edit position, size (w-32 h-48), and rotation here -->
+      <div class="poster poster-2 w-32 h-48" style="top: 57%; left: 64%; transform: rotate(3deg); background-color:#e5d5a0;">
+        <h2>Poster 2</h2>
+        <p>A different placeholder text for poster two.</p>
+      </div>
+
+      <!-- Poster 3 -->
+      <!-- 🔧 Edit position, size (w-48 h-48), and rotation here -->
+      <div class="poster poster-3 w-48 h-48" style="top: 25%; left: 70%; transform: rotate(1deg); background-color:#d4edda;">
+        <h2>Poster 3</h2>
+        <p>Some more sample content goes here for poster three.</p>
+      </div>
+
+      <!-- Poster 4: Name Card -->
+      <!-- 🔧 Edit position, size (width & height), and rotation here -->
+      <div class="poster name-card" style="top: 50%; left: 56%; transform: translate(-50%, -50%) rotate(2deg); width: 200px; height: 240px;">
+        <div class="newspaper">
+          <h1 class="headline">Ken Chollcaoop</h1>
+          <hr>
+          <p class="subhead">Mechanical Engineer</p>
+          <p>Part 1 placeholder text</p>
+          <p>Part 2 placeholder text</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const sceneContainer = document.querySelector('.scene-container');
+    const corkboard = document.querySelector('.corkboard');
+    const posters = document.querySelectorAll('.poster');
+
+    let isZoomedIn = false;
+    let activePoster = null;
+
+    sceneContainer.style.transform = 'scale(0.4)';
+    corkboard.style.transform = 'rotateX(30deg) rotateY(-30deg)';
+
+    function closeActivePoster() {
+      if (!activePoster) return;
+      if (activePoster.classList.contains('pamphlet')) {
+        activePoster.classList.remove('open');
+      }
+      activePoster.classList.remove('poster-active');
+      activePoster.style.left = activePoster.dataset.originalLeft;
+      activePoster.style.top  = activePoster.dataset.originalTop;
+      activePoster.style.transform = activePoster.dataset.originalTransform;
+      activePoster = null;
+      corkboard.classList.remove('has-active');
+    }
+
+    corkboard.addEventListener('click', function() {
+      if (!isZoomedIn) {
+        sceneContainer.style.transform = 'scale(1)';
+        corkboard.style.transform = 'rotateX(0) rotateY(0)';
+        corkboard.classList.add('zoomed-in');
+        isZoomedIn = true;
+      }
+    });
+
+    posters.forEach(poster => {
+      poster.addEventListener('click', function(e) {
+        if (!isZoomedIn) return;
+        if (activePoster && activePoster !== poster) {
+          closeActivePoster();
+        }
+        if (!activePoster) {
+          activePoster = poster;
+          poster.dataset.originalLeft = poster.style.left || '';
+          poster.dataset.originalTop  = poster.style.top  || '';
+          poster.dataset.originalTransform = poster.style.transform || '';
+          poster.classList.add('poster-active');
+          corkboard.classList.add('has-active');
+          if (poster.classList.contains('pamphlet')) {
+            setTimeout(() => poster.classList.add('open'), 550);
+          }
+        }
+      });
+    });
+
+    document.addEventListener('click', function(e) {
+      if (activePoster) {
+        if (!e.target.closest('.poster-active')) {
+          closeActivePoster();
+        }
+        return;
+      }
+      if (isZoomedIn && !e.target.closest('.corkboard')) {
+        sceneContainer.style.transform = 'scale(0.4)';
+        corkboard.style.transform = 'rotateX(30deg) rotateY(-30deg)';
+        corkboard.classList.remove('zoomed-in');
+        isZoomedIn = false;
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (activePoster) {
+          closeActivePoster();
+        } else if (isZoomedIn) {
+          sceneContainer.style.transform = 'scale(0.4)';
+          corkboard.style.transform = 'rotateX(30deg) rotateY(-30deg)';
+          corkboard.classList.remove('zoomed-in');
+          isZoomedIn = false;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
