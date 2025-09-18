@@ -1,0 +1,89 @@
+<!-- Posters/Poster2.html -->
+<div
+  class="poster poster-2 w-32 h-48"
+  id="poster2"
+  style="
+    position: absolute;
+    top: 60%;
+    left: 60%;
+    transform: rotate(3deg);
+    overflow: visible;
+  "
+>
+  <!-- Sticky note (kept first so it can sit visually behind the poster-face via z-index) -->
+  <div class="sticky-note" aria-hidden="true"></div>
+
+  <!-- Poster face covers the entire poster container (no gaps) -->
+  <div class="poster-face">
+    <!-- poster-content provides the padding so the face itself can be full-bleed -->
+    <div class="poster-content">
+      <h2>Poster 2</h2>
+      <p>A different placeholder text for poster two.</p>
+    </div>
+  </div>
+</div>
+<style>
+  /* ---------- Poster2 sticky-note behaviour ---------- */
+  #poster2 {
+    overflow: visible; /* important so the note can peek outside the poster area */
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+  }
+
+  /* Poster face should sit above sticky note */
+  #poster2 .poster-face {
+    position: absolute;
+    inset: 0;
+    background-color: #e5d5a0; /* poster color */
+    box-sizing: border-box;
+    z-index: 3; /* sits above sticky note */
+    border: none;
+    outline: none;
+  }
+
+  /* Inner content padding + stacking */
+  #poster2 .poster-content {
+    padding: 10px;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 4; /* text/content above poster face */
+    color: #000;
+  }
+
+  /* Sticky note itself */
+  #poster2 .sticky-note {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 96px;
+    height: 96px;
+    transform: translate(-50%, -50%) rotate(0deg);
+    background: #ffef5b;
+    border: 1px solid #d6c200;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    z-index: 2; /* behind poster-face */
+    pointer-events: none;
+    transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+    will-change: transform;
+  }
+
+  /* Slide out when poster is active */
+  #poster2.poster-active .sticky-note {
+    transform: translate(calc(-50% - 120px), -50%) rotate(-9deg);
+    transition-delay: 0.55s;
+  }
+
+  /* Small-screen adjustments */
+  @media (max-width: 640px) {
+    #poster2 .sticky-note {
+      width: 72px;
+      height: 72px;
+    }
+    #poster2.poster-active .sticky-note {
+      transform: translate(calc(-50% - 110px), -50%);
+    }
+  }
+</style>

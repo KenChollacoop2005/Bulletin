@@ -1,0 +1,157 @@
+<div
+  class="poster name-card-stack"
+  style="
+    top: 50%;
+    left: 56%;
+    transform: translate(-50%, -50%) rotate(2deg);
+    width: 191.25px;
+    height: 247.5px;
+  "
+>
+  <style>
+    .poster.name-card-stack {
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+    }
+    .name-card-page {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.6s ease, opacity 0.6s ease, box-shadow 0.6s ease;
+      background-size: cover;
+      background-position: center;
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      overflow: visible;
+    }
+    .name-card-page.is-front {
+      z-index: 2;
+    }
+    .name-card-page.is-back {
+      z-index: 1;
+      transform: rotate(-4deg) translate(-8px, 8px);
+    }
+    .name-card-page.moving-out {
+      transform: translateX(120%) rotate(5deg);
+      opacity: 0.9;
+      z-index: 3;
+    }
+
+    .paperclip-container {
+      position: absolute;
+      bottom: -7px;
+      right: 3px;
+      z-index: 5;
+    }
+    .paperclip {
+      width: 22px;
+      height: 22px;
+      transform: rotate(-90deg) scale(0.33);
+    }
+    .paperclip svg {
+      width: 66px;
+      height: 66px;
+    }
+    @keyframes clip-glow {
+      0%,
+      100% {
+        filter: drop-shadow(0 0 0px gold);
+      }
+      50% {
+        filter: drop-shadow(0 0 8px gold);
+      }
+    }
+    .poster-active .name-card-page.is-front .paperclip {
+      animation: clip-glow 2s infinite ease-in-out;
+    }
+  </style>
+
+  <!-- Back page -->
+  <div class="name-card-page page-back is-back">
+    <img src="Assets/NamecardBack.png" alt="Namecard Back" class="card-img" />
+    <div class="paperclip-container">
+      <div class="paperclip">
+        <svg viewBox="0 0 36 36">
+          <path
+            d="M22 10v15a6 6 0 1 1-12 0V12a8 8 0 1 1 16 0v14a10 10 0 1 1-20 0V11"
+            stroke="#6b7280"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Front page -->
+  <div class="name-card-page page-front is-front">
+    <img src="Assets/Namecard.png" alt="Namecard Front" class="card-img" />
+    <div class="paperclip-container">
+      <div class="paperclip">
+        <svg viewBox="0 0 36 36">
+          <path
+            d="M22 10v15a6 6 0 1 1-12 0V12a8 8 0 1 1 16 0v14a10 10 0 1 1-20 0V11"
+            stroke="#6b7280"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const stack = document.currentScript.closest(".name-card-stack");
+    let swapping = false;
+
+    function pointInRect(x, y, rect) {
+      return (
+        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
+      );
+    }
+
+    function swapPages(e) {
+      e.stopPropagation();
+      if (swapping) return;
+      swapping = true;
+
+      const currentFront = stack.querySelector(".name-card-page.is-front");
+      const currentBack = stack.querySelector(".name-card-page.is-back");
+
+      currentFront.classList.add("moving-out");
+
+      const onSlideOutEnd = (ev) => {
+        if (ev.propertyName !== "transform") return;
+        currentFront.removeEventListener("transitionend", onSlideOutEnd);
+
+        currentFront.classList.remove("moving-out", "is-front");
+        currentFront.classList.add("is-back");
+
+        currentBack.classList.remove("is-back");
+        currentBack.classList.add("is-front");
+
+        const onSettleEnd = (ev2) => {
+          if (ev2.propertyName !== "transform") return;
+          currentBack.removeEventListener("transitionend", onSettleEnd);
+          swapping = false;
+        };
+        currentBack.addEventListener("transitionend", onSettleEnd);
+      };
+      currentFront.addEventListener("transitionend", onSlideOutEnd);
+    }
+
+    stack.addEventListener("click", (e) => {
+      if (!stack.classList.contains("poster-active")) return;
+      const frontClip = stack.querySelector(
+        ".name-card-page.is-front .paperclip-container"
+      );
+      if (!frontClip) return;
+      const rect = frontClip.getBoundingClientRect();
+      if (pointInRect(e.clientX, e.clientY, rect)) {
+        swapPages(e);
+      }
+    });
+  </script>
+</div>
