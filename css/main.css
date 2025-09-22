@@ -105,3 +105,14 @@ body {
   fill: none;
   overflow: visible;
 }
+.pamphlet-paperclip-container,
+.pamphlet-paperclip {
+  background: transparent;
+}
+
+.pamphlet-paperclip,
+.pamphlet-paperclip svg {
+  background: transparent !important;
+  fill: none;
+  overflow: visible;
+}

@@ -9,7 +9,7 @@ corkboard.style.transform = "rotateX(30deg) rotateY(-30deg)";
 
 // List all poster HTML files
 const posterFiles = [
-  "Posters/Pamphlet.html",
+  "Posters/Pamphlet-SawasdeeDC.html",
   "Posters/Poster2.html",
   "Posters/Poster3.html",
   "Posters/NameCard.html",
@@ -51,6 +51,9 @@ function initPosterInteractions() {
   function finishClose(poster) {
     if (poster.classList.contains("pamphlet")) {
       poster.classList.remove("open");
+      // also remove any flipped state when closing
+      const li = poster.querySelector(".SDCLanyard-inner");
+      if (li) li.classList.remove("flipped");
     }
     poster.classList.remove("poster-active");
     poster.style.left = poster.dataset.originalLeft;
@@ -117,6 +120,19 @@ function initPosterInteractions() {
         }
       }
     });
+
+    // --- Pamphlet lanyard wiring (attach overlay click to toggle flip) ---
+    const lanyardClick = poster.querySelector(".SDCLanyard-click");
+    const lanyardInner = poster.querySelector(".SDCLanyard-inner");
+    if (lanyardClick && lanyardInner) {
+      lanyardClick.addEventListener("click", (ev) => {
+        // stop propagation so the click doesn't re-close the poster or re-trigger other handlers
+        ev.stopPropagation();
+        // only allow flipping when this poster is active (open)
+        if (!poster.classList.contains("poster-active")) return;
+        lanyardInner.classList.toggle("flipped");
+      });
+    }
   });
 
   // Name card page swap (if it exists)
@@ -188,7 +204,7 @@ function initPosterInteractions() {
     }
   });
 
-  // Escape key
+  // Keyboard handling: 'f' flips the lanyard (if a pamphlet is active), Escape closes
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (activePoster) closeActivePoster();

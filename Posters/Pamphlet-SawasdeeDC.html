@@ -1,0 +1,503 @@
+<div
+  id="pamphlet"
+  class="poster pamphlet poster-1"
+  style="top: 25%; left: 25%; transform: rotate(-2deg)"
+>
+  <style>
+    :root {
+      --panelW: 110px;
+      --panelH: 256px;
+    }
+
+    .pamphlet {
+      padding: 0;
+      width: var(--panelW);
+      height: var(--panelH);
+      overflow: visible;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+      background: transparent;
+    }
+
+    .pamphlet .panel {
+      position: absolute;
+      top: 0;
+      width: var(--panelW);
+      height: var(--panelH);
+      transform-style: preserve-3d;
+      border: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.8s ease;
+      backface-visibility: hidden;
+    }
+
+    .panel .face {
+      position: absolute;
+      inset: 0;
+      padding: 0;
+      backface-visibility: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .panel .face .face-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    .panel .face img {
+      width: auto;
+      height: auto;
+      max-width: 1100px;
+      max-height: 2560px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.25);
+      will-change: transform;
+    }
+
+    .panel .face.back {
+      transform: rotateY(180deg);
+    }
+
+    .panel.coverpanel {
+      transform-origin: right center;
+      left: 0;
+      z-index: 3;
+    }
+    .panel.coverpanel.duplicate {
+      z-index: 5;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: right center;
+      transform-style: preserve-3d;
+    }
+    .panel.leftpanel {
+      transform-origin: right center;
+      left: 0;
+      z-index: 2;
+    }
+    .panel.rightpanel {
+      transform-origin: left center;
+      left: 0;
+      z-index: 2;
+    }
+
+    .pamphlet:not(.open) .panel.coverpanel,
+    .pamphlet:not(.open) .panel.coverpanel.duplicate {
+      transform: rotateY(0deg);
+    }
+    .pamphlet:not(.open) .panel.leftpanel {
+      transform: rotateY(0deg);
+    }
+    .pamphlet:not(.open) .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    .pamphlet.open .panel.coverpanel,
+    .pamphlet.open .panel.coverpanel.duplicate {
+      transform: rotateY(180deg);
+    }
+    .pamphlet.open .panel.leftpanel {
+      transform: rotateY(0deg);
+    }
+    .pamphlet.open .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    #pamphlet {
+      overflow: visible;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      isolation: isolate; /* This creates a new stacking context */
+      position: relative; /* Ensure it's a positioned element for z-index */
+    }
+
+    /* Shadow square behind polaroid */
+    #pamphlet .shadow-square {
+      position: absolute;
+      top: 53%;
+      left: 45%;
+      width: 115px;
+      height: 115px;
+      background-color: green;
+      transform: translate(-50%, -50%) rotate(0deg);
+      z-index: 3; /* behind polaroid */
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
+      will-change: transform;
+    }
+
+    /* Polaroid */
+    #pamphlet .SDCpolaroid {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 138px;
+      height: 138px;
+      transform: translate(-52%, -50%) rotate(-3deg);
+      z-index: 4; /* in front of shadow */
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+    #pamphlet .SDCpolaroid img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    /* Invisible clickable overlay */
+    #pamphlet .SDCpolaroid-click {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 138px; /* match Polaroid size */
+      height: 138px; /* match Polaroid size */
+      transform: translate(-50%, -50%); /* center it */
+      z-index: 10; /* always on top */
+      pointer-events: auto; /* allow click detection */
+      background: transparent; /* invisible */
+    }
+    #pamphlet.poster-active .SDCpolaroid-click {
+      transform: translate(calc(-50% - 110px), -25%) rotate(-9deg);
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transition-delay: 0.7s;
+    }
+
+    /* Poster active transformations */
+    #pamphlet.poster-active .shadow-square,
+    #pamphlet.poster-active .SDCpolaroid {
+      transform: translate(calc(-50% - 110px), -25%) rotate(-9deg);
+      transition-delay: 0.7s;
+    }
+
+    @media (max-width: 640px) {
+      #pamphlet .shadow-square {
+        width: 72px;
+        height: 72px;
+      }
+      #pamphlet .SDCpolaroid {
+        width: 72px;
+        height: 72px;
+      }
+      #pamphlet.poster-active .shadow-square,
+      #pamphlet.poster-active .SDCpolaroid {
+        transform: translate(calc(-50% - 110px), -50%) rotate(-9deg);
+      }
+    }
+  </style>
+
+  <!-- Cover Panel -->
+  <div class="panel coverpanel">
+    <div class="face front">
+      <div class="face-content"></div>
+    </div>
+    <div class="face back">
+      <div class="face-content">
+        <img src="Assets/PamphletRight.png" alt="Pamphlet Right" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Duplicate Cover Panel -->
+  <div class="panel coverpanel duplicate">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/PamphletCover.png" alt="Pamphlet Cover Duplicate" />
+      </div>
+    </div>
+    <div class="face back">
+      <div class="face-content"></div>
+    </div>
+  </div>
+
+  <!-- Inside Left Panel -->
+  <div class="panel leftpanel">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/PamphletLeft.png" alt="Pamphlet Left" />
+      </div>
+    </div>
+    <div class="face back" style="background: #fafafa">
+      <h2>Back</h2>
+      <p>Back side of pamphlet.</p>
+    </div>
+  </div>
+
+  <!-- Inside Right Panel -->
+  <div class="panel rightpanel">
+    <div class="face front"></div>
+    <div class="face back" style="background: #fafafa"></div>
+  </div>
+
+  <!-- Inside Right Panel click layer -->
+  <div class="pamphlet-right-click"></div>
+
+  <!-- Shadow square behind polaroid -->
+  <div class="shadow-square"></div>
+
+  <!-- Pamphlet SDC Polaroid -->
+  <div class="SDCpolaroid">
+    <img
+      src="Assets/SDCpolaroid2.png"
+      alt="Pamphlet SDC Polaroid"
+      decoding="async"
+      fetchpriority="low"
+    />
+  </div>
+  <!-- Overlay shim for correct click behavior -->
+  <div class="SDCpolaroid-click"></div>
+
+  <!-- Pamphlet Tickets -->
+  <div class="TicketA">
+    <div class="ticket-face">
+      <img
+        src="Assets/TicketA.png"
+        alt="Ticket A Skin"
+        decoding="async"
+        fetchpriority="low"
+      />
+    </div>
+    <div class="TicketA-click"></div>
+  </div>
+  <div class="TicketE">
+    <div class="ticket-face">
+      <img
+        src="Assets/TicketE.png"
+        alt="Ticket E Skin"
+        decoding="async"
+        fetchpriority="low"
+      />
+    </div>
+    <div class="TicketE-click"></div>
+  </div>
+
+  <style>
+    /* Right panel click overlay */
+    .pamphlet-right-click {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--panelW);
+      height: var(--panelH);
+      z-index: 6; /* Higher than panels but lower than other interactive elements */
+      pointer-events: none; /* Default to not receiving clicks */
+      background: transparent;
+    }
+
+    /* Only make it clickable when pamphlet is open */
+    .pamphlet.open .pamphlet-right-click {
+      pointer-events: auto; /* Allow clicks when pamphlet is open */
+    }
+
+    /* Position it to cover the right panel area when open */
+    .pamphlet.open .pamphlet-right-click {
+      transform: translateX(
+        calc(var(--panelW))
+      ); /* Cover the right panel area */
+    }
+    /* TicketA */
+    #pamphlet .TicketA {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      width: 90px;
+      height: 33px;
+      transform: translate(-50%, -50%) rotate(0deg);
+      z-index: 4;
+      pointer-events: none;
+      transition: transform 0.66s ease-out;
+      will-change: transform;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    #pamphlet.poster-active .TicketA {
+      transform: translate(calc(-35% + 110px), 165%) rotate(10deg);
+      transition-duration: 1s;
+      transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: 1.27s;
+    }
+
+    #pamphlet:not(.poster-active) .TicketA {
+      transition-duration: 0.16s;
+      transition-timing-function: ease-out;
+      transition-delay: 0s;
+    }
+
+    /* TicketE */
+    #pamphlet .TicketE {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      width: 90px;
+      height: 33px;
+      transform: translate(-60%, -20%) rotate(5deg);
+      z-index: 4;
+      pointer-events: none;
+      transition: transform 0.66s ease-out;
+      will-change: transform;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    #pamphlet.poster-active .TicketE {
+      transform: translate(calc(-70% + 110px), 210%) rotate(15deg);
+      transition-duration: 1s;
+      transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: 1.37s;
+    }
+
+    #pamphlet:not(.poster-active) .TicketE {
+      transition-duration: 0.16s;
+      transition-timing-function: ease-out;
+      transition-delay: 0s;
+    }
+    #pamphlet .TicketA-click,
+    #pamphlet .TicketE-click {
+      position: absolute;
+      top: 0%;
+      pointer-events: auto; /* allow click detection */
+      background: transparent; /* invisible */
+      z-index: 10; /* on top of the tickets and other elements */
+      width: 90px; /* match ticket width */
+      height: 33px; /* match ticket height */
+    }
+  </style>
+
+  <!-- Pamphlet SDC Lanyard -->
+  <div class="SDCLanyard">
+    <div class="SDCLanyard-inner">
+      <!-- Front Face -->
+      <div class="face front">
+        <div class="face-content">
+          <img
+            src="Assets/LanyardFront.png"
+            alt="Lanyard Front"
+            decoding="async"
+            fetchpriority="low"
+          />
+        </div>
+      </div>
+
+      <!-- Back Face -->
+      <div class="face back">
+        <div class="face-content">
+          <img
+            src="Assets/LanyardBack.png"
+            alt="Lanyard Back"
+            decoding="async"
+            fetchpriority="low"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- CLICK OVERLAY: sibling to inner so it remains clickable regardless of inner face -->
+    <div class="SDCLanyard-click" aria-hidden="true"></div>
+
+    <style>
+      /* Lanyard */
+      #pamphlet .SDCLanyard {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 60px;
+        height: 98px;
+        transform: translate(-95%, -95%) rotate(4deg);
+        z-index: 4;
+        pointer-events: none;
+        transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+        will-change: transform;
+        overflow: visible;
+        perspective: 1000px;
+      }
+
+      #pamphlet .SDCLanyard-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s ease;
+        transform-origin: center center;
+      }
+
+      /* flip the inner when ".flipped" is applied */
+      #pamphlet .SDCLanyard-inner.flipped {
+        transform: rotateY(180deg);
+      }
+
+      #pamphlet .SDCLanyard .face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #pamphlet .SDCLanyard .face.back {
+        transform: rotateY(180deg);
+      }
+
+      #pamphlet .SDCLanyard img {
+        width: auto;
+        height: auto;
+        max-width: 1100px;
+        max-height: 2560px;
+        object-fit: cover;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+        transform: scale(0.2);
+        will-change: transform;
+      }
+
+      #pamphlet.poster-active .SDCLanyard {
+        transform: translate(-195%, -105%) rotate(3deg);
+        transition-delay: 0.95s;
+      }
+      @keyframes lanyard-glow {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 0px rgba(255, 215, 0, 0.8));
+        }
+        50% {
+          filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.9));
+        }
+      }
+
+      #pamphlet.poster-active .SDCLanyard {
+        animation: lanyard-glow 2.5s infinite ease-in-out;
+      }
+
+      /* Lanyard overlay - always sits on top and receives clicks */
+      #pamphlet .SDCLanyard-click {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: translate(0, 0) scale(1);
+        z-index: 100; /* put above the inner faces */
+        pointer-events: auto; /* clickable */
+        background: transparent;
+      }
+    </style>
+  </div>
+</div>
