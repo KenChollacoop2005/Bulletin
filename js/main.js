@@ -13,7 +13,10 @@ const posterFiles = [
   "Posters/Poster2.html",
   "Posters/Poster3.html",
   "Posters/NameCard.html",
+  "Posters/CD-Saturn.html",
 ];
+// Overlay HTML files (like posters, but rendered on top of corkboard)
+const overlayFiles = ["Overlays/OverlayElements.html"];
 
 // Dynamically load posters into the corkboard
 async function loadPosters() {
@@ -25,7 +28,14 @@ async function loadPosters() {
   // After loading, initialize interactions
   initPosterInteractions();
 }
-
+async function loadOverlays() {
+  const overlayLayer = corkboard; // overlays sit inside corkboard, same container
+  for (const file of overlayFiles) {
+    const response = await fetch(file);
+    const html = await response.text();
+    overlayLayer.insertAdjacentHTML("beforeend", html);
+  }
+}
 // Poster click / zoom / pamphlet / name card logic
 function initPosterInteractions() {
   const posters = document.querySelectorAll(".poster");
@@ -219,4 +229,6 @@ function initPosterInteractions() {
 }
 
 // Start by loading posters
-loadPosters();
+loadPosters().then(() => {
+  loadOverlays();
+});

@@ -80,7 +80,8 @@ body {
   cursor: default;
 }
 
-.has-active .poster:not(.poster-active) {
+.has-active .poster:not(.poster-active),
+.has-active .overlay-blur {
   filter: blur(10px) opacity(0.8);
 }
 
