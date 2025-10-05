@@ -67,6 +67,7 @@
       Inside Left
     </div>
   </div>
+
   <!-- Panel 2 (Right Panel / Inside Right) -->
   <div
     class="panel panel2"
@@ -100,43 +101,48 @@
         will-change: transform;
       "
     />
-    <!-- CD Disk - Now Skinned with SaturnCDdisk.png -->
+
+    <!-- CD Disk - Skinned with SaturnCDdisk.png -->
     <div
       class="cd-disk"
       style="
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 0px;
+        left: 15.45px;
         width: 100%;
         height: 100%;
-        background-color: transparent; /* Changed from yellow to transparent */
+        background-color: transparent;
         z-index: 2; /* above panel 2 content */
         pointer-events: none;
         will-change: transform;
-        overflow: hidden; /* Ensure image doesn't overflow */
+        overflow: hidden;
       "
     >
+      <!-- inside your poster .cd-disk -->
       <img
+        id="saturn-cd-disk"
         src="Assets/SaturnCDdisk.png"
         alt="Saturn CD Disk"
+        data-rotation="-45"
         style="
-          width: 100%;
-          height: 100%;
+          width: 147px;
+          height: 147px;
           object-fit: cover;
           image-rendering: -webkit-optimize-contrast;
           image-rendering: crisp-edges;
           backface-visibility: hidden;
-          transform: translateZ(0);
+          transform: rotate(-0deg);
           will-change: transform;
           position: absolute;
           top: 0;
           left: 0;
-          rotate: -45deg;
           pointer-events: auto;
+          transition: transform 0.4s ease; /* used for the initial +45° visual step */
         "
       />
     </div>
   </div>
+
   <!-- Clickable overlay for right panel -->
   <div
     class="SaturnCD-right-click"
@@ -151,13 +157,16 @@
       z-index: 3;
     "
   ></div>
+
   <style>
     /* Poster zoom and reposition when active */
     .poster-active.SaturnCD {
       transform: scale(4) !important;
       top: 40% !important;
       left: 70% !important;
-    } /* Open/close transition for Panel 1 */
+    }
+
+    /* Open/close transition for Panel 1 */
     .SaturnCD .panel1 {
       transform: rotateY(0deg);
       transform-style: preserve-3d;
@@ -166,21 +175,25 @@
     }
     .SaturnCD:not(.poster-active) .panel1 {
       transition: transform 0.4s ease 0s; /* close */
-    } /* Open state */
+    }
     .poster-active.SaturnCD .panel1 {
       transform: rotateY(-180deg);
-    } /* Enable clicking on right panel when open */
+    }
+
+    /* Enable clicking on right panel when open */
     .poster-active.SaturnCD .SaturnCD-right-click {
       pointer-events: auto;
-    } /* ---------- CD Disk sliding behavior ---------- */
+    }
+
+    /* ---------- CD Disk sliding behavior ---------- */
     .cd-disk {
       transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1) 1s;
     }
     .poster-active.SaturnCD .panel2 .cd-disk {
-      transform: translateX(53px) rotate(45deg);
+      transform: translateX(49px) translateY(8px) rotate(45deg);
     }
     .SaturnCD:not(.poster-active) .panel2 .cd-disk {
-      transform: translateX(0) rotate(-45 deg);
+      transform: translateX(0) rotate(0deg);
       transition: transform 0.4s ease 0s;
     }
   </style>
