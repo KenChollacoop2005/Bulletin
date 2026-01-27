@@ -48,6 +48,7 @@
         "
       />
     </div>
+
     <!-- Back: Inside Left - Now with SaturnCDleft.png -->
     <div
       class="face back"
@@ -73,11 +74,29 @@
           transform: scale(0.226) translateX(0px);
           will-change: transform;
           position: absolute;
-          top: -253px;
+          top: -252px;
           left: -296px;
           pointer-events: none;
         "
       />
+
+      <!-- ============================================================= -->
+      <!-- 🪐 Module image loading and class setting🪐 -->
+      <!-- ============================================================= -->
+
+      <!-- Saturn module container (inside the back face, after the background image) -->
+      <div class="saturn-modules">
+        <!-- 🎯 Enceladus Module with hitbox -->
+        <div id="module-Enceladus" class="saturn-module">
+          <img
+            src="Assets/SaturnModulars/Enceladus.png"
+            alt="Saturn Module - Enceladus"
+            class="module-image"
+          />
+          <!-- 🔹 Hitbox for precise hover -->
+          <div id="module-Enceladus-hitbox"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -148,11 +167,14 @@
           position: absolute;
           top: 0;
           left: 0;
+          z-index: 2;
           pointer-events: auto;
           transition: transform 0.4s ease;
         "
       />
     </div>
+    <!-- 🎶 CD Music Note Layer (NEW) -->
+    <div class="cd-note-layer"></div>
   </div>
 
   <!-- Clickable overlay for right panel -->
@@ -222,5 +244,163 @@
       transform: rotate(0deg);
       transition: transform 0.4s ease 0s;
     }
+    /* ============================================================================================================================ */
+    /* 🎶 SATURN CD — MUSIC NOTE EMISSION SYSTEM 🎶 */
+    /* ============================================================================================================================ */
+
+    .cd-note-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 1;
+    }
+
+    /* Individual music note */
+    .cd-music-note {
+      position: absolute;
+      left: 110%;
+      top: 20%;
+      width: 60px; /* scale down your 400px×200px PNG */
+      height: auto;
+      pointer-events: none;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: translate(-50%, -50%) rotate(var(--rot));
+      animation: cdNoteFloat var(--dur) linear forwards;
+    }
+
+    @keyframes cdNoteFloat {
+      0% {
+        transform: translate(-50%, -50%) translate(0, 0) scale(0.85)
+          rotate(var(--rot));
+        opacity: 1;
+      }
+
+      25% {
+        transform: translate(-50%, -50%)
+          translate(calc(var(--x) * 0.25), calc(var(--y) * 0.25)) scale(0.9)
+          rotate(calc(var(--rot) + 10deg));
+      }
+
+      50% {
+        transform: translate(-50%, -50%)
+          translate(calc(var(--x) * 0.5), calc(var(--y) * 0.5)) scale(1)
+          rotate(calc(var(--rot) - 10deg));
+      }
+
+      75% {
+        transform: translate(-50%, -50%)
+          translate(calc(var(--x) * 0.75), calc(var(--y) * 0.75)) scale(1.05)
+          rotate(calc(var(--rot) + 5deg));
+      }
+
+      100% {
+        transform: translate(-50%, -50%) translate(var(--x), var(--y))
+          scale(1.15) rotate(calc(var(--rot) - 5deg));
+        opacity: 0;
+      }
+    }
+
+    /* ============================================================================================================================ */
+    /* 🪐 SATURN CD — MODULE SYSTEM CODE STARTS BELOW THIS LINE 🪐 */
+    /* ============================================================================================================================ */
+
+    /* 🧱 Saturn Module Container (parent) */
+    .saturn-modules {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none; /* container doesn't block, but children can have events */
+    }
+
+    /* 🎯 Enceladus module image */
+    #module-Enceladus {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 1; /* visible now */
+    }
+
+    #module-Enceladus .module-image {
+      width: auto;
+      height: auto;
+      max-width: 1100px;
+      max-height: 2560px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.226) translateX(0px);
+      position: absolute;
+      top: -252px;
+      left: -296px;
+      pointer-events: none; /* hover is now controlled by hitbox */
+      transition: filter 0.3s ease; /* smooth glow */
+    }
+
+    /* 🔹 Hitbox for precise hover over Enceladus */
+    #module-Enceladus-hitbox {
+      position: absolute;
+      top: 115px; /* adjust as needed */
+      left: 113px; /* adjust as needed */
+      width: 32px; /* adjust to match visible module */
+      height: 26px; /* adjust to match visible module */
+      background-color: rgba(
+        0,
+        0,
+        255,
+        0.2
+      ); /* translucent blue for positioning */
+      cursor: pointer;
+      pointer-events: auto;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Hover on the parent container when hitbox is hovered */
+    #module-Enceladus:hover .module-image {
+      filter: drop-shadow(0 0 8px yellow)
+        drop-shadow(0 0 12px rgba(255, 255, 0, 0.7));
+    }
+    /* Glow effect class (same as hover) */
+    #module-Enceladus.glow .module-image {
+      filter: drop-shadow(0 0 8px yellow)
+        drop-shadow(0 0 12px rgba(255, 255, 0, 0.7));
+    }
   </style>
+
+  <script>
+    // 🧠 Saturn CD Module System Logic (Enceladus ready)
+    console.log("Saturn module system initialized - Enceladus loaded");
+
+    // Variable to track which mouthpiece is selected
+    let MouthpieceSelected = null;
+
+    // Function to apply glow if Enceladus is selected
+    function updateMouthpieceGlow() {
+      const enceladusModule = document.getElementById("module-Enceladus");
+      if (MouthpieceSelected === "Enceladus") {
+        enceladusModule.classList.add("glow");
+      } else {
+        enceladusModule.classList.remove("glow");
+      }
+    }
+
+    // Click listener on the hitbox to select Enceladus
+    const enceladusHitbox = document.getElementById("module-Enceladus-hitbox");
+    if (enceladusHitbox) {
+      enceladusHitbox.addEventListener("click", () => {
+        MouthpieceSelected = "Enceladus";
+        updateMouthpieceGlow();
+        console.log("Enceladus selected via click!");
+      });
+    }
+
+    // Optional: initialize
+    updateMouthpieceGlow();
+  </script>
 </div>
