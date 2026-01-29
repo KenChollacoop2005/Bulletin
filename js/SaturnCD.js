@@ -39,7 +39,7 @@
       // Pick a random note
       const randomIndex = Math.floor(Math.random() * noteFiles.length);
       note.src = noteFiles[randomIndex];
-      note.style.width = "45px"; // desired width
+      note.style.width = "38px"; // desired width
       note.style.height = "auto"; // keep aspect ratio
 
       // Spray range: 15° left of Y-axis (-105°) to 15° left of X-axis (-15°)
