@@ -189,7 +189,7 @@ function initPosterInteractions() {
     stack.addEventListener("click", (e) => {
       if (activePoster !== stack) return;
       const frontClip = stack.querySelector(
-        ".name-card-page.is-front .paperclip-container"
+        ".name-card-page.is-front .paperclip-container",
       );
       if (!frontClip) return;
 

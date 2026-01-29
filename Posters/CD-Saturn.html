@@ -1,249 +1,163 @@
 <div
   class="poster SaturnCD"
   style="
-    --active-scale: 1.7;
     top: 58%;
     left: 22%;
     transform: rotate(6deg);
     background-color: transparent;
-    width: 167px;
-    height: 147px;
     position: absolute;
-    overflow: visible;
-    perspective: 1200px; /* depth for 3D flip */
   "
 >
-  <!-- Panel 1 (Cover Panel) -->
-  <div
-    class="panel panel1"
-    style="
-      z-index: 2;
-      position: absolute;
-      inset: 0;
+  <style>
+    :root {
+      --saturnW: 167px;
+      --saturnH: 147px;
+    }
+
+    .SaturnCD {
+      padding: 0;
+      width: var(--saturnW);
+      height: var(--saturnH);
+      overflow: visible;
+      perspective: 1200px;
       transform-style: preserve-3d;
-      transform-origin: left center;
-    "
-  >
-    <!-- Front: CD Cover -->
-    <div
-      class="face front"
-      style="position: absolute; inset: 0; backface-visibility: hidden"
-    >
-      <img
-        src="Assets/SaturnCDcover.png"
-        alt="Saturn CD Cover"
-        style="
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          image-rendering: -webkit-optimize-contrast;
-          image-rendering: crisp-edges;
-          backface-visibility: hidden;
-          transform: translateZ(0);
-          will-change: transform;
-          position: absolute;
-          top: 0;
-          left: 0;
-          pointer-events: none;
-        "
-      />
-    </div>
+      background: transparent;
+    }
 
-    <!-- Back: Inside Left - Now with SaturnCDleft.png -->
-    <div
-      class="face back"
-      style="
-        position: absolute;
-        inset: 0;
-        backface-visibility: hidden;
-        transform: rotateY(-180deg);
-      "
-    >
-      <img
-        src="Assets/SaturnCDleft.png"
-        alt="Inside Left"
-        style="
-          width: auto;
-          height: auto;
-          max-width: 1100px;
-          max-height: 2560px;
-          object-fit: cover;
-          image-rendering: -webkit-optimize-contrast;
-          image-rendering: crisp-edges;
-          backface-visibility: hidden;
-          transform: scale(0.226) translateX(0px);
-          will-change: transform;
-          position: absolute;
-          top: -252px;
-          left: -296px;
-          pointer-events: none;
-        "
-      />
+    /* Add/modify these rules in your existing CSS */
 
-      <!-- ============================================================= -->
-      <!-- 🪐 Module image loading and class setting🪐 -->
-      <!-- ============================================================= -->
-
-      <!-- Saturn module container (inside the back face, after the background image) -->
-      <div class="saturn-modules">
-        <!-- 🎯 Enceladus Module with hitbox -->
-        <div id="module-Enceladus" class="saturn-module">
-          <img
-            src="Assets/SaturnModulars/Enceladus.png"
-            alt="Saturn Module - Enceladus"
-            class="module-image"
-          />
-          <!-- 🔹 Hitbox for precise hover -->
-          <div id="module-Enceladus-hitbox"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Panel 2 (Right Panel / Inside Right) -->
-  <div
-    class="panel panel2"
-    style="
-      z-index: 1;
+    .SaturnCD .panel {
       position: absolute;
-      inset: 0;
+      top: 0;
+      width: var(--saturnW);
+      height: var(--saturnH);
+      transform-style: preserve-3d;
+      border: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.9rem;
-      background: transparent;
-      color: #222;
-      overflow: visible;
-      transform-style: preserve-3d; /* needed for CD disk movement */
-    "
-  >
-    <img
-      src="Assets/SaturnCDright.png"
-      alt="Inside Right"
-      style="
-        width: auto;
-        height: auto;
-        max-width: 1100px;
-        max-height: 2560px;
-        object-fit: cover;
-        image-rendering: -webkit-optimize-contrast;
-        image-rendering: crisp-edges;
-        transform: scale(0.226) translateX(-5px);
-        overflow: visible;
-        will-change: transform;
-      "
-    />
+      transition: transform 0.8s ease;
+      backface-visibility: hidden;
+      overflow: visible; /* ADD THIS */
+    }
 
-    <!-- CD Disk - Skinned with SaturnCDdisk.png -->
-    <div
-      class="cd-disk"
-      style="
-        position: absolute;
-        top: 0px;
-        left: 15.4px;
-        width: 100%;
-        height: 100%;
-        background-color: transparent;
-        z-index: 2; /* above panel 2 content */
-        pointer-events: none;
-        will-change: transform;
-        overflow: hidden;
-      "
-    >
-      <img
-        id="saturn-cd-disk"
-        src="Assets/SaturnCDdisk.png"
-        alt="Saturn CD Disk"
-        data-rotation="0"
-        style="
-          width: 147px;
-          height: 147px;
-          object-fit: cover;
-          image-rendering: -webkit-optimize-contrast;
-          image-rendering: crisp-edges;
-          backface-visibility: hidden;
-          transform: rotate(0deg);
-          will-change: transform;
-          position: absolute;
-          top: 0;
-          left: 0;
-          z-index: 2;
-          pointer-events: auto;
-          transition: transform 0.4s ease;
-        "
-      />
-    </div>
-    <!-- 🎶 CD Music Note Layer (NEW) -->
-    <div class="cd-note-layer"></div>
-  </div>
-
-  <!-- Clickable overlay for right panel -->
-  <div
-    class="SaturnCD-right-click"
-    style="
+    .SaturnCD .panel .face {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
+      padding: 0;
+      backface-visibility: hidden;
+      background-size: cover;
+      background-position: center;
+      pointer-events: auto;
+      overflow: visible; /* ADD THIS */
+    }
+
+    .SaturnCD .panel .face .face-content {
       width: 100%;
       height: 100%;
-      pointer-events: none;
-      background: transparent;
-      z-index: 3;
-    "
-  ></div>
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      transform: translateZ(0);
+      will-change: transform;
+      pointer-events: auto;
+      overflow: visible; /* ADD THIS */
+      transform: scale(0.9);
+    }
 
-  <style>
-    /* Poster zoom and reposition when active */
+    /* Also make sure the cover panel specifically has overflow visible */
+    .SaturnCD .panel.coverpanel {
+      overflow: visible; /* ENSURE THIS IS SET */
+      transform-origin: left center;
+      left: 0;
+      z-index: 2;
+    }
+
+    .SaturnCD .panel.rightpanel {
+      left: 0;
+      z-index: 1;
+    }
+
+    .SaturnCD:not(.poster-active) .panel.coverpanel {
+      transform: rotateY(0deg);
+      transition: transform 0.4s ease 0s;
+    }
+
+    .SaturnCD:not(.poster-active) .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    .SaturnCD.poster-active .panel.coverpanel {
+      transform: rotateY(-180deg) translateX(1.5px);
+      transition: transform 0.8s ease 0.6s;
+    }
+
+    .SaturnCD.poster-active .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    /* Poster zoom when active - NO ROTATION when active */
     .poster-active.SaturnCD {
-      transform: scale(4) !important;
+      transform: scale(4) rotate(0deg) !important; /* Changed from rotate(6deg) to rotate(0deg) */
       top: 40% !important;
       left: 70% !important;
     }
 
-    /* Open/close transition for Panel 1 */
-    .SaturnCD .panel1 {
-      transform: rotateY(0deg);
-      transform-style: preserve-3d;
-      transform-origin: left center;
-      transition: transform 0.8s ease 0.6s;
-    }
-    .SaturnCD:not(.poster-active) .panel1 {
-      transition: transform 0.4s ease 0s;
-    }
-    .poster-active.SaturnCD .panel1 {
-      transform: rotateY(-180deg);
-    }
+    /* ============================================================================================================================ */
+    /* 💿 CD DISK SYSTEM 💿 */
+    /* ============================================================================================================================ */
 
-    /* Enable clicking on right panel when open */
-    .poster-active.SaturnCD .SaturnCD-right-click {
-      pointer-events: auto;
-    }
-
-    /* ---------- CD Disk sliding behavior ---------- */
     .cd-disk {
+      position: absolute;
+      top: 0px;
+      left: 15.4px;
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      z-index: 2;
+      pointer-events: none;
+      will-change: transform;
+      overflow: hidden;
       transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1) 1s;
     }
 
-    /* Slide the container to the right */
-    .poster-active.SaturnCD .panel2 .cd-disk {
+    #saturn-cd-disk {
+      width: 147px;
+      height: 147px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      backface-visibility: hidden;
+      transform: rotate(0deg);
+      will-change: transform;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      pointer-events: auto;
+      transition: transform 0.4s ease;
+    }
+
+    .poster-active.SaturnCD .panel.rightpanel .cd-disk {
       transform: translateX(49px) translateY(8px) rotate(45deg);
     }
 
-    /* Rotate the image inside */
-    .poster-active.SaturnCD .panel2 #saturn-cd-disk {
+    .poster-active.SaturnCD .panel.rightpanel #saturn-cd-disk {
       transform: rotate(45deg);
     }
 
-    /* Reset states when closed */
-    .SaturnCD:not(.poster-active) .panel2 .cd-disk {
+    .SaturnCD:not(.poster-active) .panel.rightpanel .cd-disk {
       transform: translateX(0);
       transition: transform 0.4s ease 0s;
     }
 
-    .SaturnCD:not(.poster-active) .panel2 #saturn-cd-disk {
+    .SaturnCD:not(.poster-active) .panel.rightpanel #saturn-cd-disk {
       transform: rotate(0deg);
       transition: transform 0.4s ease 0s;
     }
+
     /* ============================================================================================================================ */
     /* 🎶 SATURN CD — MUSIC NOTE EMISSION SYSTEM 🎶 */
     /* ============================================================================================================================ */
@@ -256,12 +170,11 @@
       z-index: 1;
     }
 
-    /* Individual music note */
     .cd-music-note {
       position: absolute;
       left: 110%;
       top: 20%;
-      width: 60px; /* scale down your 400px×200px PNG */
+      width: 60px;
       height: auto;
       pointer-events: none;
       image-rendering: -webkit-optimize-contrast;
@@ -303,104 +216,61 @@
     }
 
     /* ============================================================================================================================ */
-    /* 🪐 SATURN CD — MODULE SYSTEM CODE STARTS BELOW THIS LINE 🪐 */
+    /* 🖱️ CLICKABLE OVERLAY 🖱️ */
     /* ============================================================================================================================ */
 
-    /* 🧱 Saturn Module Container (parent) */
-    .saturn-modules {
+    .SaturnCD-right-click {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      pointer-events: none; /* container doesn't block, but children can have events */
+      top: 2%;
+      left: -98%;
+      width: 197%;
+      height: 96%;
+      pointer-events: none;
+      background: none;
+      z-index: -1;
     }
 
-    /* 🎯 Enceladus module image */
-    #module-Enceladus {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 1; /* visible now */
-    }
-
-    #module-Enceladus .module-image {
-      width: auto;
-      height: auto;
-      max-width: 1100px;
-      max-height: 2560px;
-      object-fit: cover;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-      transform: scale(0.226) translateX(0px);
-      position: absolute;
-      top: -252px;
-      left: -296px;
-      pointer-events: none; /* hover is now controlled by hitbox */
-      transition: filter 0.3s ease; /* smooth glow */
-    }
-
-    /* 🔹 Hitbox for precise hover over Enceladus */
-    #module-Enceladus-hitbox {
-      position: absolute;
-      top: 115px; /* adjust as needed */
-      left: 113px; /* adjust as needed */
-      width: 32px; /* adjust to match visible module */
-      height: 26px; /* adjust to match visible module */
-      background-color: rgba(
-        0,
-        0,
-        255,
-        0.2
-      ); /* translucent blue for positioning */
-      cursor: pointer;
+    .poster-active.SaturnCD .SaturnCD-right-click {
       pointer-events: auto;
-      transition: background-color 0.3s ease;
-    }
-
-    /* Hover on the parent container when hitbox is hovered */
-    #module-Enceladus:hover .module-image {
-      filter: drop-shadow(0 0 8px yellow)
-        drop-shadow(0 0 12px rgba(255, 255, 0, 0.7));
-    }
-    /* Glow effect class (same as hover) */
-    #module-Enceladus.glow .module-image {
-      filter: drop-shadow(0 0 8px yellow)
-        drop-shadow(0 0 12px rgba(255, 255, 0, 0.7));
     }
   </style>
 
-  <script>
-    // 🧠 Saturn CD Module System Logic (Enceladus ready)
-    console.log("Saturn module system initialized - Enceladus loaded");
+  <!-- Cover Panel (flips to reveal inside left) -->
+  <div class="panel coverpanel">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/SaturnCDcover.png" alt="Saturn CD Cover" />
+      </div>
+    </div>
+    <div class="face back">
+      <div class="face-content">
+        <img src="Assets/SaturnCDleft.png" alt="Inside Left" />
+      </div>
+    </div>
+  </div>
 
-    // Variable to track which mouthpiece is selected
-    let MouthpieceSelected = null;
+  <!-- Right Panel (always visible) -->
+  <div class="panel rightpanel">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/SaturnCDright.png" alt="Inside Right" />
+      </div>
+    </div>
 
-    // Function to apply glow if Enceladus is selected
-    function updateMouthpieceGlow() {
-      const enceladusModule = document.getElementById("module-Enceladus");
-      if (MouthpieceSelected === "Enceladus") {
-        enceladusModule.classList.add("glow");
-      } else {
-        enceladusModule.classList.remove("glow");
-      }
-    }
+    <!-- CD Disk - Skinned with SaturnCDdisk.png -->
+    <div class="cd-disk">
+      <img
+        id="saturn-cd-disk"
+        src="Assets/SaturnCDdisk.png"
+        alt="Saturn CD Disk"
+        data-rotation="0"
+      />
+    </div>
 
-    // Click listener on the hitbox to select Enceladus
-    const enceladusHitbox = document.getElementById("module-Enceladus-hitbox");
-    if (enceladusHitbox) {
-      enceladusHitbox.addEventListener("click", () => {
-        MouthpieceSelected = "Enceladus";
-        updateMouthpieceGlow();
-        console.log("Enceladus selected via click!");
-      });
-    }
+    <!-- 🎶 CD Music Note Layer -->
+    <div class="cd-note-layer"></div>
+  </div>
 
-    // Optional: initialize
-    updateMouthpieceGlow();
-  </script>
+  <!-- Clickable overlay for right panel -->
+  <div class="SaturnCD-right-click"></div>
 </div>
