@@ -14,6 +14,11 @@
   let noteEmitterActive = false;
   let noteTimeout = null;
 
+  // State — module selections
+  let selectedBody = null;
+  let selectedMouth = null;
+  let selectedBell = null;
+
   const noteFiles = [
     "Assets/Quarternote1.png",
     "Assets/Quarternote2.png",
@@ -172,8 +177,27 @@
     if (!img) return;
 
     if (!poster.classList.contains("poster-active")) {
-      stopAndReset(img); // Still reset when poster closes
+      stopAndReset(img);
       stopNoteEmitter();
+
+      // Reset module selections
+      selectedBody = null;
+      selectedMouth = null;
+      selectedBell = null;
+
+      // Uncheck all module checkboxes when poster closes
+      [
+        "titan-select",
+        "phoebe-select",
+        "pandoraK-select",
+        "pandoraM-select",
+        "pandoraS-select",
+        "tethys-select",
+        "enceladus-select",
+      ].forEach((id) => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) checkbox.checked = false;
+      });
     }
   });
 
@@ -192,4 +216,109 @@
     if (!img) return;
     img.style.transform = `rotate(${currentRotation}deg)`;
   })();
+
+  // ============================================================================================================================
+  // 🛰️ MODULE SELECTION MANAGEMENT SYSTEM 🛰️
+  // ============================================================================================================================
+
+  // Direct click handling for each module's label/hitbox
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+
+    // Use setTimeout to let the checkbox state update first
+    setTimeout(() => {
+      // BODY MODULES (Titan, Phoebe)
+      if (target.id === "module-Titan-hitbox") {
+        const titan = document.getElementById("titan-select");
+        const phoebe = document.getElementById("phoebe-select");
+        if (titan && phoebe && titan.checked) {
+          phoebe.checked = false;
+          selectedBody = "titan";
+        } else if (titan && !titan.checked) {
+          selectedBody = null;
+        }
+      }
+
+      if (target.id === "module-Phoebe-hitbox") {
+        const titan = document.getElementById("titan-select");
+        const phoebe = document.getElementById("phoebe-select");
+        if (titan && phoebe && phoebe.checked) {
+          titan.checked = false;
+          selectedBody = "phoebe";
+        } else if (phoebe && !phoebe.checked) {
+          selectedBody = null;
+        }
+      }
+
+      // MOUTH MODULES (PandoraK, PandoraM, PandoraS)
+      if (target.id === "module-PandoraK-hitbox") {
+        const pandoraK = document.getElementById("pandoraK-select");
+        const pandoraM = document.getElementById("pandoraM-select");
+        const pandoraS = document.getElementById("pandoraS-select");
+        if (pandoraK && pandoraK.checked) {
+          if (pandoraM) pandoraM.checked = false;
+          if (pandoraS) pandoraS.checked = false;
+          selectedMouth = "pandoraK";
+        } else if (pandoraK && !pandoraK.checked) {
+          selectedMouth = null;
+        }
+      }
+
+      if (target.id === "module-PandoraM-hitbox") {
+        const pandoraK = document.getElementById("pandoraK-select");
+        const pandoraM = document.getElementById("pandoraM-select");
+        const pandoraS = document.getElementById("pandoraS-select");
+        if (pandoraM && pandoraM.checked) {
+          if (pandoraK) pandoraK.checked = false;
+          if (pandoraS) pandoraS.checked = false;
+          selectedMouth = "pandoraM";
+        } else if (pandoraM && !pandoraM.checked) {
+          selectedMouth = null;
+        }
+      }
+
+      if (target.id === "module-PandoraS-hitbox") {
+        const pandoraK = document.getElementById("pandoraK-select");
+        const pandoraM = document.getElementById("pandoraM-select");
+        const pandoraS = document.getElementById("pandoraS-select");
+        if (pandoraS && pandoraS.checked) {
+          if (pandoraK) pandoraK.checked = false;
+          if (pandoraM) pandoraM.checked = false;
+          selectedMouth = "pandoraS";
+        } else if (pandoraS && !pandoraS.checked) {
+          selectedMouth = null;
+        }
+      }
+
+      // BELL MODULES (Tethys, Enceladus)
+      if (target.id === "module-Tethys-hitbox") {
+        const tethys = document.getElementById("tethys-select");
+        const enceladus = document.getElementById("enceladus-select");
+        if (tethys && enceladus && tethys.checked) {
+          enceladus.checked = false;
+          selectedBell = "tethys";
+        } else if (tethys && !tethys.checked) {
+          selectedBell = null;
+        }
+      }
+
+      if (target.id === "module-Enceladus-hitbox") {
+        const tethys = document.getElementById("tethys-select");
+        const enceladus = document.getElementById("enceladus-select");
+        if (tethys && enceladus && enceladus.checked) {
+          tethys.checked = false;
+          selectedBell = "enceladus";
+        } else if (enceladus && !enceladus.checked) {
+          selectedBell = null;
+        }
+      }
+
+      // Optional: Log current selections for debugging
+      console.log("Current selections:", {
+        selectedBody,
+        selectedMouth,
+        selectedBell,
+      });
+    }, 0);
+  });
 })();

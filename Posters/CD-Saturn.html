@@ -67,20 +67,31 @@
       transform: scale(0.9);
     }
 
-    /* Also make sure the cover panel specifically has overflow visible */
+    /* Cover panel at z-index 3 - shows cover front, invisible back */
     .SaturnCD .panel.coverpanel {
-      overflow: visible; /* ENSURE THIS IS SET */
+      overflow: visible;
       transform-origin: left center;
+      left: 0;
+      z-index: 3;
+    }
+
+    /* Left panel at z-index 1 - shows left image front, invisible back */
+    .SaturnCD .panel.leftpanel {
+      overflow: visible;
+      transform-origin: left center;
+      left: 1px;
+      z-index: 1;
+    }
+
+    /* Right panel at z-index 2 - contains all interactive elements */
+    .SaturnCD .panel.rightpanel {
       left: 0;
       z-index: 2;
     }
 
-    .SaturnCD .panel.rightpanel {
-      left: 0;
-      z-index: 1;
-    }
-
-    .SaturnCD:not(.poster-active) .panel.coverpanel {
+    /* When closed */
+    .SaturnCD:not(.poster-active) .panel.coverpanel,
+    .SaturnCD:not(.poster-active) .panel.leftpanel {
       transform: rotateY(0deg);
       transition: transform 0.4s ease 0s;
     }
@@ -89,7 +100,9 @@
       transform: rotateY(0deg);
     }
 
-    .SaturnCD.poster-active .panel.coverpanel {
+    /* When active/open */
+    .SaturnCD.poster-active .panel.coverpanel,
+    .SaturnCD.poster-active .panel.leftpanel {
       transform: rotateY(-180deg) translateX(1.5px);
       transition: transform 0.8s ease 0.6s;
     }
@@ -100,9 +113,20 @@
 
     /* Poster zoom when active - NO ROTATION when active */
     .poster-active.SaturnCD {
-      transform: scale(4) rotate(0deg) !important; /* Changed from rotate(6deg) to rotate(0deg) */
+      transform: scale(4) rotate(0deg) !important;
       top: 40% !important;
       left: 70% !important;
+    }
+
+    /* General module container - don't affect flex layout */
+    .saturn-module {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
     }
 
     /* ============================================================================================================================ */
@@ -233,13 +257,694 @@
     .poster-active.SaturnCD .SaturnCD-right-click {
       pointer-events: auto;
     }
+
+    /* ============================================================================================================================ */
+    /* 📘 SATURN BLUEPRINT UI SLIDE-OUT SYSTEM 📘 */
+    /* ============================================================================================================================ */
+
+    .SaturnBlueprintUI {
+      position: absolute;
+      top: 75px;
+      left: 50px;
+      width: 60px;
+      height: 131px;
+      transform: translate(-50px, -50px) rotate(0deg);
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      z-index: 5;
+      pointer-events: auto;
+      transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+      opacity: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible; /* Allow children to overflow */
+    }
+
+    .SaturnBlueprintUI img {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      overflow: visible;
+      transform: scale(0.118);
+      will-change: transform;
+    }
+
+    /* Slide out to the left when poster is active */
+    .poster-active.SaturnCD .panel.rightpanel .SaturnBlueprintUI {
+      transform: translate(-260px, -48px) rotate(-8deg);
+      transition-delay: 1.4s;
+      opacity: 1;
+    }
+
+    /* Return to hidden position when case closes */
+    .SaturnCD:not(.poster-active) .panel.rightpanel .SaturnBlueprintUI {
+      transform: translate(-50%, -50%) rotate(0deg);
+      opacity: 0;
+      transition:
+        transform 0.4s ease 0s,
+        opacity 0.4s ease 0s;
+    }
+
+    /* ============================================================================================================================ */
+    /* 🛰️ SATURN MODULAR ELEMENTS SYSTEM 🛰️ */
+    /* ============================================================================================================================ */
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: TITAN
+    /* +------------------------------------------------------------------------------+ */
+    #titan-select {
+      display: none;
+    }
+
+    /* Titan Module Image */
+    #module-Titan .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* Titan Hitbox */
+    #module-Titan-hitbox {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      width: 28px;
+      height: 65px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #titan-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-Titan:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #titan-select:checked ~ .SaturnBlueprintUI #module-Titan .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* Titan wiggle animation on selection */
+    @keyframes titanWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when Titan is checked AND poster is active */
+    .poster-active.SaturnCD
+      #titan-select:checked
+      ~ .SaturnBlueprintUI
+      #module-Titan
+      .module-image {
+      animation: titanWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: PHOEBE
+    /* +------------------------------------------------------------------------------+ */
+    #phoebe-select {
+      display: none;
+    }
+
+    /* Phoebe Module Image */
+    #module-Phoebe .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* Phoebe Hitbox */
+    #module-Phoebe-hitbox {
+      position: absolute;
+      top: 25px;
+      left: 8px;
+      width: 10px;
+      height: 63px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #phoebe-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-Phoebe:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #phoebe-select:checked ~ .SaturnBlueprintUI #module-Phoebe .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* Phoebe wiggle animation on selection */
+    @keyframes phoebeWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when Phoebe is checked AND poster is active */
+    .poster-active.SaturnCD
+      #phoebe-select:checked
+      ~ .SaturnBlueprintUI
+      #module-Phoebe
+      .module-image {
+      animation: phoebeWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: PANDORAK
+    /* +------------------------------------------------------------------------------+ */
+    /* Hidden checkbox for selection state */
+    #pandoraK-select {
+      display: none;
+    }
+
+    /* PandoraK Module Image */
+    #module-PandoraK .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118) translateZ(0);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* PandoraK Hitbox */
+    #module-PandoraK-hitbox {
+      position: absolute;
+      top: 2px;
+      left: 23px;
+      width: 13px;
+      height: 20px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #pandoraK-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-PandoraK:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #pandoraK-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraK
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* PandoraK wiggle animation on selection */
+    @keyframes pandoraKWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when PandoraK is checked AND poster is active */
+    .poster-active.SaturnCD
+      #pandoraK-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraK
+      .module-image {
+      animation: pandoraKWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: PANDORAM
+    /* +------------------------------------------------------------------------------+ */
+    /* Hidden checkbox for selection state */
+    #pandoraM-select {
+      display: none;
+    }
+
+    /* PandoraM Module Image */
+    #module-PandoraM .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118) translateZ(0);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* PandoraM Hitbox */
+    #module-PandoraM-hitbox {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      width: 13px;
+      height: 19px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #pandoraM-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-PandoraM:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #pandoraM-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraM
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* PandoraM wiggle animation on selection */
+    @keyframes pandoraMWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when PandoraM is checked AND poster is active */
+    .poster-active.SaturnCD
+      #pandoraM-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraM
+      .module-image {
+      animation: pandoraMWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: PANDORAS
+    /* +------------------------------------------------------------------------------+ */
+    /* Hidden checkbox for selection state */
+    #pandoraS-select {
+      display: none;
+    }
+
+    /* PandoraS Module Image */
+    #module-PandoraS .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118) translateZ(0);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* PandoraS Hitbox */
+    #module-PandoraS-hitbox {
+      position: absolute;
+      top: 1px;
+      left: 41px;
+      width: 13px;
+      height: 20px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #pandoraS-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-PandoraS:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #pandoraS-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraS
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* PandoraS wiggle animation on selection */
+    @keyframes pandoraSWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when PandoraS is checked AND poster is active */
+    .poster-active.SaturnCD
+      #pandoraS-select:checked
+      ~ .SaturnBlueprintUI
+      #module-PandoraS
+      .module-image {
+      animation: pandoraSWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: ENCELADUS
+    /* +------------------------------------------------------------------------------+ */
+    #enceladus-select {
+      display: none;
+    }
+
+    /* Enceladus Module Image */
+    #module-Enceladus .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* Enceladus Hitbox */
+    #module-Enceladus-hitbox {
+      position: absolute;
+      top: 91px;
+      left: 28px;
+      width: 26px;
+      height: 23px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #enceladus-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-Enceladus:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #enceladus-select:checked
+      ~ .SaturnBlueprintUI
+      #module-Enceladus
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* Enceladus wiggle animation on selection */
+    @keyframes enceladusWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when Enceladus is checked AND poster is active */
+    .poster-active.SaturnCD
+      #enceladus-select:checked
+      ~ .SaturnBlueprintUI
+      #module-Enceladus
+      .module-image {
+      animation: enceladusWiggle 0.5s ease-out;
+    }
+
+    /* +------------------------------------------------------------------------------+ */
+    /*    MODULE: TETHYS
+    /* +------------------------------------------------------------------------------+ */
+    #tethys-select {
+      display: none;
+    }
+
+    /* Tethys Module Image */
+    #module-Tethys .module-image {
+      width: auto;
+      height: auto;
+      max-width: 600px;
+      max-height: 1310px;
+      object-fit: cover;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      transform: scale(0.118) translateZ(0);
+      will-change: transform;
+      position: absolute;
+      top: -590px;
+      left: -270px;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+    }
+
+    /* Tethys Hitbox */
+    #module-Tethys-hitbox {
+      position: absolute;
+      position: absolute;
+      top: 91px;
+      left: 6px;
+      width: 15px;
+      height: 23px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Yellow hover glow - only when NOT selected */
+    #tethys-select:not(:checked)
+      ~ .SaturnBlueprintUI
+      #module-Tethys:hover
+      .module-image {
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Green selection glow - when checkbox is checked */
+    #tethys-select:checked ~ .SaturnBlueprintUI #module-Tethys .module-image {
+      filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.9));
+    }
+
+    /* Tethys wiggle animation on selection */
+    @keyframes tethysWiggle {
+      0% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+      15% {
+        transform: scale(0.118) translateZ(0) rotate(-4deg) scale(1.02);
+      }
+      30% {
+        transform: scale(0.118) translateZ(0) rotate(4deg) scale(1.04);
+      }
+      45% {
+        transform: scale(0.118) translateZ(0) rotate(-3deg) scale(1.02);
+      }
+      60% {
+        transform: scale(0.118) translateZ(0) rotate(2deg) scale(1.01);
+      }
+      75% {
+        transform: scale(0.118) translateZ(0) rotate(-1deg);
+      }
+      100% {
+        transform: scale(0.118) translateZ(0) rotate(0deg);
+      }
+    }
+
+    /* Trigger wiggle when Tethys is checked AND poster is active */
+    .poster-active.SaturnCD
+      #tethys-select:checked
+      ~ .SaturnBlueprintUI
+      #module-Tethys
+      .module-image {
+      animation: tethysWiggle 0.5s ease-out;
+    }
+
+    /* ============================================================================================================================ */
+    /* END OF CSS */
+    /* ============================================================================================================================ */
   </style>
 
-  <!-- Cover Panel (flips to reveal inside left) -->
+  <!-- Cover Panel at z-index 3 - Shows cover front, invisible back -->
   <div class="panel coverpanel">
     <div class="face front">
       <div class="face-content">
         <img src="Assets/SaturnCDcover.png" alt="Saturn CD Cover" />
+      </div>
+    </div>
+    <div class="face back">
+      <div class="face-content">
+        <!-- Invisible back -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Left Panel at z-index 1 - Shows left image on BACK, invisible front -->
+  <div class="panel leftpanel">
+    <div class="face front">
+      <div class="face-content">
+        <!-- Invisible front -->
       </div>
     </div>
     <div class="face back">
@@ -249,7 +954,7 @@
     </div>
   </div>
 
-  <!-- Right Panel (always visible) -->
+  <!-- Right Panel at z-index 2 - Contains all interactive elements -->
   <div class="panel rightpanel">
     <div class="face front">
       <div class="face-content">
@@ -269,8 +974,107 @@
 
     <!-- 🎶 CD Music Note Layer -->
     <div class="cd-note-layer"></div>
-  </div>
+    <!-- ============================================================ -->
+    <!-- 🛰️ SATURN MODULE CHECKBOXES (all 7 hidden checkboxes) -->
+    <!-- ============================================================ -->
+    <input type="checkbox" id="titan-select" />
+    <input type="checkbox" id="phoebe-select" />
+    <input type="checkbox" id="pandoraK-select" />
+    <input type="checkbox" id="pandoraM-select" />
+    <input type="checkbox" id="pandoraS-select" />
+    <input type="checkbox" id="tethys-select" />
+    <input type="checkbox" id="enceladus-select" />
 
-  <!-- Clickable overlay for right panel -->
-  <div class="SaturnCD-right-click"></div>
+    <!-- 📘 BLUEPRINT UI SLIDE-OUT ELEMENT (on right panel at z-index 2) -->
+    <div class="SaturnBlueprintUI" aria-hidden="true">
+      <img src="Assets/SaturnBlueprint.png" alt="Saturn Blueprint" />
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: TITAN -->
+      <!-- ============================================================ -->
+      <div id="module-Titan" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/Titan.png"
+          alt="Saturn Module - Titan"
+          class="module-image"
+        />
+        <label for="titan-select" id="module-Titan-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: PHOEBE -->
+      <!-- ============================================================ -->
+      <div id="module-Phoebe" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/Phoebe.png"
+          alt="Saturn Module - Phoebe"
+          class="module-image"
+        />
+        <label for="phoebe-select" id="module-Phoebe-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: PANDORAK -->
+      <!-- ============================================================ -->
+      <div id="module-PandoraK" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/PandoraK.png"
+          alt="Saturn Module - PandoraK"
+          class="module-image"
+        />
+        <label for="pandoraK-select" id="module-PandoraK-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: PANDORAM -->
+      <!-- ============================================================ -->
+      <div id="module-PandoraM" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/PandoraM.png"
+          alt="Saturn Module - PandoraM"
+          class="module-image"
+        />
+        <label for="pandoraM-select" id="module-PandoraM-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: PANDORAS -->
+      <!-- ============================================================ -->
+      <div id="module-PandoraS" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/PandoraS.png"
+          alt="Saturn Module - PandoraS"
+          class="module-image"
+        />
+        <label for="pandoraS-select" id="module-PandoraS-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: TETHYS -->
+      <!-- ============================================================ -->
+      <div id="module-Tethys" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/Tethys.png"
+          alt="Saturn Module - Tethys"
+          class="module-image"
+        />
+        <label for="tethys-select" id="module-Tethys-hitbox"></label>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 🛰️ MODULE: ENCELADUS -->
+      <!-- ============================================================ -->
+      <div id="module-Enceladus" class="saturn-module">
+        <img
+          src="Assets/SaturnModulars/Enceladus.png"
+          alt="Saturn Module - Enceladus"
+          class="module-image"
+        />
+        <label for="enceladus-select" id="module-Enceladus-hitbox"></label>
+      </div>
+    </div>
+
+    <!-- Clickable overlay for right panel -->
+    <div class="SaturnCD-right-click"></div>
+  </div>
 </div>
