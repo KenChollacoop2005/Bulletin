@@ -12,7 +12,7 @@ const posterFiles = [
   "Posters/Pamphlet-SawasdeeDC.html",
   "Posters/Poster2.html",
   "Posters/Poster3.html",
-  "posters/AcessibilityPaper.html",
+  "Posters/AccessibilityPaper.html",
   "Posters/NameCard.html",
   "Posters/CD-Saturn.html",
 ];
