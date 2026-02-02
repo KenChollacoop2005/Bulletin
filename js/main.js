@@ -70,6 +70,24 @@ function initPosterInteractions() {
     poster.style.left = poster.dataset.originalLeft;
     poster.style.top = poster.dataset.originalTop;
     poster.style.transform = poster.dataset.originalTransform;
+
+    // ============ SOUND EFFECTS ============
+    // Play close sound for APFolder
+    if (poster.classList.contains("APFolder")) {
+      soundEffects.play("APFClose");
+    }
+    if (poster.classList.contains("SaturnCD")) {
+      setTimeout(() => {
+        soundEffects.play("SCDclose");
+      }, 100);
+    }
+    if (poster.classList.contains("name-card-stack")) {
+      setTimeout(() => {
+        soundEffects.play("NCputdown");
+      }, 100);
+    }
+    // =======================================
+
     activePoster = null;
     corkboard.classList.remove("has-active");
   }
@@ -129,6 +147,43 @@ function initPosterInteractions() {
         if (poster.classList.contains("pamphlet")) {
           setTimeout(() => poster.classList.add("open"), 550);
         }
+
+        // ============ SOUND EFFECTS ============
+        // Play sounds for APFolder panels with staggered delays
+        if (poster.classList.contains("APFolder")) {
+          // Left panel
+          setTimeout(() => {
+            soundEffects.play("APF1");
+          }, 400); // 550ms = 0.55s delay
+
+          // Polaroid panel
+          setTimeout(() => {
+            soundEffects.play("APF2");
+          }, 150);
+
+          // Right panel
+          setTimeout(() => {
+            soundEffects.play("APF3");
+          }, 100);
+        }
+        if (poster.classList.contains("SaturnCD")) {
+          // CD Case Opens
+          setTimeout(() => {
+            soundEffects.play("SCDopen");
+          }, 400);
+
+          // Slide Out Blueprint
+          setTimeout(() => {
+            soundEffects.play("SCDbpslide");
+          }, 800);
+        }
+        if (poster.classList.contains("name-card-stack")) {
+          // NameCard newspaper pickup
+          setTimeout(() => {
+            soundEffects.play("NCpickup");
+          }, 10);
+        }
+        // =======================================
       }
     });
 
@@ -199,6 +254,16 @@ function initPosterInteractions() {
         swapPages(e);
       }
     });
+
+    // ============ WATCH FOR PAGE SWAPPING ============
+    // Listen for the animation/transition that happens during swap
+    stack.addEventListener("transitionstart", (e) => {
+      // Check if it's the moving-out transition
+      if (e.target.classList.contains("moving-out")) {
+        soundEffects.play("NCchange");
+      }
+    });
+    // =================================================
   }
 
   // Click outside to close posters
