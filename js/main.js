@@ -72,6 +72,9 @@ function initPosterInteractions() {
     poster.style.transform = poster.dataset.originalTransform;
 
     // ============ SOUND EFFECTS ============
+    // Stop all currently playing sounds first
+    soundEffects.stopAll();
+
     // Play close sound for APFolder
     if (poster.classList.contains("APFolder")) {
       soundEffects.play("APFClose");
@@ -85,6 +88,9 @@ function initPosterInteractions() {
       setTimeout(() => {
         soundEffects.play("NCputdown");
       }, 100);
+    }
+    if (poster.classList.contains("pamphlet")) {
+      soundEffects.play("SDCPclose");
     }
     // =======================================
 
@@ -183,6 +189,25 @@ function initPosterInteractions() {
             soundEffects.play("NCpickup");
           }, 10);
         }
+        if (poster.classList.contains("pamphlet")) {
+          // Pamphlet slideouts, no open sound
+          // Slide Out polaroid
+          setTimeout(() => {
+            soundEffects.play("SDCpolaroid");
+          }, 350);
+          // Slide out lanyard
+          setTimeout(() => {
+            soundEffects.play("SDClanyard");
+          }, 700);
+          // Slide Out ticket1
+          setTimeout(() => {
+            soundEffects.play("SDCticket");
+          }, 900);
+          // Slide Out ticket2
+          setTimeout(() => {
+            soundEffects.play("SDCticket");
+          }, 1100);
+        }
         // =======================================
       }
     });
@@ -192,11 +217,13 @@ function initPosterInteractions() {
     const lanyardInner = poster.querySelector(".SDCLanyard-inner");
     if (lanyardClick && lanyardInner) {
       lanyardClick.addEventListener("click", (ev) => {
-        // stop propagation so the click doesn't re-close the poster or re-trigger other handlers
         ev.stopPropagation();
-        // only allow flipping when this poster is active (open)
         if (!poster.classList.contains("poster-active")) return;
         lanyardInner.classList.toggle("flipped");
+
+        // ============ SOUND EFFECT ============
+        soundEffects.play("SDClanyardFlip");
+        // ======================================
       });
     }
   });
@@ -260,6 +287,7 @@ function initPosterInteractions() {
     stack.addEventListener("transitionstart", (e) => {
       // Check if it's the moving-out transition
       if (e.target.classList.contains("moving-out")) {
+        soundEffects.stopAll();
         soundEffects.play("NCchange");
       }
     });
