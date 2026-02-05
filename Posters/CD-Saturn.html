@@ -25,7 +25,38 @@
       filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.4));
     }
 
-    /* Add/modify these rules in your existing CSS */
+    /*================================================================================*/
+    /* Assembly dim overlay */
+    /*================================================================================*/
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      opacity: 0;
+      pointer-events: none; /* Will be set to auto during assembly */
+      z-index: 49;
+      transition: opacity 0.8s ease;
+    }
+
+    body.assembly-active::before {
+      opacity: 0.9;
+      pointer-events: auto; /* Block all clicks during assembly */
+    }
+
+    /* Cloned modules for assembly animation */
+    .assembly-clone {
+      position: fixed;
+      z-index: 100;
+      pointer-events: none;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+      will-change: transform;
+    }
 
     .SaturnCD .panel {
       position: absolute;
@@ -39,7 +70,7 @@
       justify-content: center;
       transition: transform 0.8s ease;
       backface-visibility: hidden;
-      overflow: visible; /* ADD THIS */
+      overflow: visible;
     }
 
     .SaturnCD .panel .face {
@@ -50,7 +81,7 @@
       background-size: cover;
       background-position: center;
       pointer-events: auto;
-      overflow: visible; /* ADD THIS */
+      overflow: visible;
     }
 
     .SaturnCD .panel .face .face-content {

@@ -86,6 +86,11 @@ soundEffects.loadSound("SDCticket", "sounds/SDCticketsslide.mp3", 0.3);
 soundEffects.loadSound("SDCpolaroid", "sounds/SDCpolaroidslide.mp3", 0.2);
 soundEffects.loadSound("SDCPclose", "sounds/SDCPclose.mp3", 0.3);
 soundEffects.loadSound("SDClanyardFlip", "sounds/SDClanyardFlip.wav", 0.1);
+soundEffects.loadSound("SatMod1", "sounds/SaturnModulars/1.mp3", 0.2);
+soundEffects.loadSound("SatMod2", "sounds/SaturnModulars/2.mp3", 1);
+soundEffects.loadSound("SatMod3", "sounds/SaturnModulars/3.mp3", 0.4);
+soundEffects.loadSound("SatMod4", "sounds/SaturnModulars/4.mp3", 1);
+soundEffects.loadSound("SatMod5", "sounds/SaturnModulars/5.mp3", 0.2);
 
 // Make it available globally
 window.soundEffects = soundEffects;
