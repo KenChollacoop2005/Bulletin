@@ -666,44 +666,328 @@
       () => {
         console.log("Phase 7: Information bloom beginning...");
 
-        const screenCenterY = window.innerHeight / 2;
+        const assembled = document.querySelector(".assembled-saturn");
+        if (!assembled) {
+          console.error("Phase 7: Could not find assembled image!");
+          return;
+        }
 
-        // Create left yellow square (off-screen left)
-        const leftSquare = document.createElement("div");
-        leftSquare.className = "info-bloom-left";
-        leftSquare.style.position = "fixed";
-        leftSquare.style.left = "-200px"; // Start off-screen
-        leftSquare.style.top = `${screenCenterY - 100}px`; // Centered vertically
-        leftSquare.style.width = "150px";
-        leftSquare.style.height = "150px";
-        leftSquare.style.backgroundColor = "yellow";
-        leftSquare.style.zIndex = "102";
-        leftSquare.style.transition =
-          "left 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-        document.body.appendChild(leftSquare);
+        const assembledRect = assembled.getBoundingClientRect();
+        const padding = 20; // Minimum distance from screen edge
+        const gap = 100; // Gap between elements and instrument
 
-        // Create right yellow square (off-screen right)
-        const rightSquare = document.createElement("div");
-        rightSquare.className = "info-bloom-right";
-        rightSquare.style.position = "fixed";
-        rightSquare.style.right = "-200px"; // Start off-screen
-        rightSquare.style.top = `${screenCenterY - 100}px`; // Centered vertically
-        rightSquare.style.width = "150px";
-        rightSquare.style.height = "150px";
-        rightSquare.style.backgroundColor = "yellow";
-        rightSquare.style.zIndex = "102";
-        rightSquare.style.transition =
-          "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-        document.body.appendChild(rightSquare);
+        // ============================================================
+        // NAMETAG (slides in from top)
+        // ============================================================
+        const nametagWidth = 1440; // 1920px * 0.75 scaled
+        const nametagHeight = 810; // 1080px * 0.75 scaled
 
-        // Slide them in to 25% from each edge
+        const nametag = document.createElement("img");
+        nametag.src = "Assets/SaturnInfobloom/SaturnNametag.png";
+        nametag.className = "info-bloom-nametag";
+        nametag.style.position = "fixed";
+        nametag.style.width = `${nametagWidth}px`;
+        nametag.style.height = `${nametagHeight}px`;
+        nametag.style.imageRendering = "crisp-edges";
+        nametag.style.objectFit = "contain";
+
+        // Center horizontally relative to assembled image
+        const nametagLeft =
+          assembledRect.left + assembledRect.width / 2 - nametagWidth / 2;
+        nametag.style.left = `${nametagLeft}px`;
+
+        // Start off-screen above
+        nametag.style.top = `-${nametagHeight + 50}px`;
+
+        nametag.style.zIndex = "102";
+        nametag.style.transition =
+          "top 1250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        document.body.appendChild(nametag);
+
+        // ============================================================
+        // HEADING (slides in from top-right, appears after nametag)
+        // ============================================================
+        const headingWidth = 960; // 1920px * 0.5 scaled
+        const headingHeight = 540; // 1080px * 0.5 scaled
+
+        const heading = document.createElement("img");
+        heading.src = "Assets/SaturnInfobloom/SaturnHeading.png";
+        heading.className = "info-bloom-heading";
+        heading.style.position = "fixed";
+        heading.style.width = `${headingWidth}px`;
+        heading.style.height = `${headingHeight}px`;
+        heading.style.imageRendering = "crisp-edges";
+        heading.style.objectFit = "contain";
+
+        // Start position: to the right of nametag, off-screen above
+        const headingStartLeft = nametagLeft + nametagWidth - 250;
+        heading.style.left = `${headingStartLeft}px`;
+        heading.style.top = `-${headingHeight + 100}px`;
+
+        heading.style.zIndex = "102";
+        heading.style.transition =
+          "top 1250ms cubic-bezier(0.25, 0.46, 0.45, 0.94), left 1250ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        heading.style.transform = "rotate(0deg)";
+        document.body.appendChild(heading);
+
+        // ============================================================
+        // LEFT PANEL (Release Notes)
+        // ============================================================
+        const releaseNotesWidth = 614.4; // 1024 * 0.6
+        const releaseNotesHeight = 1365; // 1092 * 0.6
+
+        const releaseNotes = document.createElement("img");
+        releaseNotes.src = "Assets/SaturnInfobloom/SaturnReleaseNotes.png";
+        releaseNotes.className = "info-bloom-left";
+        releaseNotes.style.position = "fixed";
+        releaseNotes.style.width = `${releaseNotesWidth}px`;
+        releaseNotes.style.height = `${releaseNotesHeight}px`;
+        releaseNotes.style.imageRendering = "crisp-edges";
+        releaseNotes.style.objectFit = "contain";
+        releaseNotes.style.zIndex = "102";
+
+        // Position vertically centered with assembled image
+        releaseNotes.style.top = `${assembledRect.top + assembledRect.height / 2 - releaseNotesHeight / 2}px`;
+
+        // Start off-screen left
+        releaseNotes.style.left = `-${releaseNotesWidth + 200}px`;
+
+        releaseNotes.style.transition =
+          "left 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        releaseNotes.style.transform = "rotate(0deg)";
+        document.body.appendChild(releaseNotes);
+
+        // ============================================================
+        // POLAROID (Team Picture) - slides in with heading, above release notes
+        // ============================================================
+        const polaroidWidth = 990 * 0.3; // 25% size = 247.5px
+        const polaroidHeight = 1150 * 0.3; // 25% size = 287.5px
+
+        const polaroid = document.createElement("img");
+        polaroid.src = "Assets/SaturnInfobloom/SaturnTeamPic.png";
+        polaroid.className = "info-bloom-polaroid";
+        polaroid.style.position = "fixed";
+        polaroid.style.width = `${polaroidWidth}px`;
+        polaroid.style.height = `${polaroidHeight}px`;
+        polaroid.style.imageRendering = "crisp-edges";
+        polaroid.style.objectFit = "contain";
+        polaroid.style.zIndex = "103"; // Above release notes (102)
+
+        // Position 200px lower than release notes
+        polaroid.style.top = `${assembledRect.top + assembledRect.height / 2 - releaseNotesHeight / 2 + 925}px`;
+
+        // Start off-screen left (same as release notes)
+        polaroid.style.left = `-${polaroidWidth + 200}px`;
+
+        polaroid.style.transition =
+          "left 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        polaroid.style.transform = "rotate(0deg)";
+        document.body.appendChild(polaroid);
+
+        // ============================================================
+        // RIGHT PANEL (Cutting Board)
+        // ============================================================
+        const cuttingBoardWidth = 1200 * 0.6;
+        const cuttingBoardHeight = 1752 * 0.6;
+
+        const cuttingBoard = document.createElement("img");
+        cuttingBoard.src = "Assets/SaturnInfobloom/SaturnCuttingBoard.png";
+        cuttingBoard.className = "info-bloom-right";
+        cuttingBoard.style.position = "fixed";
+        cuttingBoard.style.width = `${cuttingBoardWidth}px`;
+        cuttingBoard.style.height = `${cuttingBoardHeight}px`;
+        cuttingBoard.style.imageRendering = "crisp-edges";
+        cuttingBoard.style.objectFit = "contain";
+        cuttingBoard.style.zIndex = "101";
+
+        // Position vertically centered with assembled image
+        cuttingBoard.style.top = `${assembledRect.top + assembledRect.height / 2 - cuttingBoardHeight / 2 + 100}px`;
+
+        // Start off-screen right
+        cuttingBoard.style.right = `-${cuttingBoardWidth + 200}px`;
+
+        cuttingBoard.style.transition =
+          "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        cuttingBoard.style.transform = "rotate(10deg)"; // Start at 10 degrees
+        document.body.appendChild(cuttingBoard);
+
+        // ============================================================
+        // NOTECARDS (Mouthpiece, Body, Bell) - slide in with random delays
+        // ============================================================
+        const notecardWidth = 1920 * 0.45; // 45% size
+        const notecardHeight = 1080 * 0.45; // 45% size
+
+        // Determine which notecard images to use based on selections
+        // Mouthpiece: pandoraK, pandoraM, or pandoraS
+        let mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraKNotecard.png"; // default
+        if (selectedMouth === "pandoraK") {
+          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraKNotecard.png";
+        } else if (selectedMouth === "pandoraM") {
+          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraMNotecard.png";
+        } else if (selectedMouth === "pandoraS") {
+          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraSNotecard.png";
+        }
+
+        // Body: titan or phoebe
+        let bodyNotecardSrc = "Assets/SaturnInfobloom/TitanNotecard.png"; // default
+        if (selectedBody === "titan") {
+          bodyNotecardSrc = "Assets/SaturnInfobloom/TitanNotecard.png";
+        } else if (selectedBody === "phoebe") {
+          bodyNotecardSrc = "Assets/SaturnInfobloom/PhoebeNotecard.png";
+        }
+
+        // Bell: tethys or enceladus
+        let bellNotecardSrc = "Assets/SaturnInfobloom/EnceladusNotecard.png"; // default
+        if (selectedBell === "tethys") {
+          bellNotecardSrc = "Assets/SaturnInfobloom/TethysNotecard.png";
+        } else if (selectedBell === "enceladus") {
+          bellNotecardSrc = "Assets/SaturnInfobloom/EnceladusNotecard.png";
+        }
+
+        // Mouthpiece Notecard
+        const mouthNotecard = document.createElement("img");
+        mouthNotecard.src = mouthNotecardSrc; // Use selected image
+        mouthNotecard.className = "info-bloom-notecard-mouth";
+        mouthNotecard.style.position = "fixed";
+        mouthNotecard.style.width = `${notecardWidth}px`;
+        mouthNotecard.style.height = `${notecardHeight}px`;
+        mouthNotecard.style.imageRendering = "crisp-edges";
+        mouthNotecard.style.objectFit = "contain";
+        mouthNotecard.style.zIndex = "101";
+
+        mouthNotecard.style.top = `${assembledRect.top + assembledRect.height / 2 - notecardHeight / 2 - 220 + 30}px`;
+        mouthNotecard.style.right = `-${notecardWidth + 600}px`;
+
+        mouthNotecard.style.transition =
+          "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        mouthNotecard.style.transform = "rotate(10deg)";
+        document.body.appendChild(mouthNotecard);
+
+        // Body Notecard
+        const bodyNotecard = document.createElement("img");
+        bodyNotecard.src = bodyNotecardSrc; // Use selected image
+        bodyNotecard.className = "info-bloom-notecard-body";
+        bodyNotecard.style.position = "fixed";
+        bodyNotecard.style.width = `${notecardWidth}px`;
+        bodyNotecard.style.height = `${notecardHeight}px`;
+        bodyNotecard.style.imageRendering = "crisp-edges";
+        bodyNotecard.style.objectFit = "contain";
+        bodyNotecard.style.zIndex = "103";
+
+        bodyNotecard.style.top = `${assembledRect.top + assembledRect.height / 2 - notecardHeight / 2 + 130 + 30}px`;
+        bodyNotecard.style.right = `-${notecardWidth + 0}px`;
+
+        bodyNotecard.style.transition =
+          "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        bodyNotecard.style.transform = "rotate(10deg)";
+        document.body.appendChild(bodyNotecard);
+
+        // Bell Notecard
+        const bellNotecard = document.createElement("img");
+        bellNotecard.src = bellNotecardSrc; // Use selected image
+        bellNotecard.className = "info-bloom-notecard-bell";
+        bellNotecard.style.position = "fixed";
+        bellNotecard.style.width = `${notecardWidth}px`;
+        bellNotecard.style.height = `${notecardHeight}px`;
+        bellNotecard.style.imageRendering = "crisp-edges";
+        bellNotecard.style.objectFit = "contain";
+        bellNotecard.style.zIndex = "102";
+
+        bellNotecard.style.top = `${assembledRect.top + assembledRect.height / 2 - notecardHeight / 2 + 375 + 30}px`;
+        bellNotecard.style.right = `-${notecardWidth + 0}px`;
+
+        bellNotecard.style.transition =
+          "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        bellNotecard.style.transform = "rotate(10deg)";
+        document.body.appendChild(bellNotecard);
+
+        // ============================================================
+        // SLIDE EVERYTHING IN IMMEDIATE
+        // ============================================================
         setTimeout(() => {
-          leftSquare.style.left = "20vw"; // 25% from left edge
-          rightSquare.style.right = "20vw"; // 25% from right edge
+          // Slide nametag down from top
+          let nametagTop = assembledRect.top - gap - nametagHeight;
+          nametagTop = Math.max(padding, nametagTop); // Clamp to screen
+          nametag.style.top = `${nametagTop - 200 - 100}px`;
+
+          // Slide left panel in with rotation
+          let leftPos = assembledRect.left - gap - releaseNotesWidth;
+          leftPos = Math.max(padding, leftPos); // Clamp to screen
+          releaseNotes.style.left = `${leftPos}px`;
+          releaseNotes.style.transform = "rotate(-2deg)";
+
+          // Slide right panel in with rotation change
+          let rightPos = assembledRect.right + gap;
+          rightPos = Math.min(
+            window.innerWidth - cuttingBoardWidth - padding,
+            rightPos,
+          ); // Clamp to screen
+          cuttingBoard.style.right = `${window.innerWidth - rightPos - cuttingBoardWidth}px`;
+          cuttingBoard.style.transform = "rotate(2deg)"; // End at 2 degrees
+
           console.log("Phase 7: Info panels sliding in...");
+
+          // ============================================================
+          // SLIDE IN DELAYED STUFF
+          // ============================================================
+          setTimeout(() => {
+            // Final position: 100px right of starting position, slightly below nametag, rotated 3°
+            const headingFinalLeft = headingStartLeft - 600;
+            const headingFinalTop = nametagTop - 750 + nametagHeight; // Below nametag with small gap
+
+            heading.style.left = `${headingFinalLeft}px`;
+            heading.style.top = `${headingFinalTop - 100}px`;
+            heading.style.transform = "rotate(-3deg)";
+
+            // Slide polaroid in with +1 degree rotation (slides at same time as heading)
+            let polaroidPos = assembledRect.left - gap - polaroidWidth;
+            polaroidPos = Math.max(padding, polaroidPos); // Clamp to screen
+            polaroid.style.left = `${polaroidPos - 225}px`;
+            polaroid.style.transform = "rotate(-6deg)";
+
+            // Slide notecards in with random delays (100-300ms range)
+            const mouthDelay = 100 + Math.random() * 400;
+            const bodyDelay = 100 + Math.random() * 400;
+            const bellDelay = 100 + Math.random() * 300;
+
+            setTimeout(() => {
+              let mouthPos = assembledRect.right + gap;
+              mouthPos = Math.min(
+                window.innerWidth - notecardWidth - padding,
+                mouthPos,
+              );
+              mouthNotecard.style.right = `${window.innerWidth - mouthPos - notecardWidth + 75 - 10}px`;
+              mouthNotecard.style.transform = "rotate(0deg)";
+              console.log("Phase 7: Mouth notecard sliding in...");
+            }, mouthDelay);
+
+            setTimeout(() => {
+              let bodyPos = assembledRect.right + gap;
+              bodyPos = Math.min(
+                window.innerWidth - notecardWidth - padding,
+                bodyPos,
+              );
+              bodyNotecard.style.right = `${window.innerWidth - bodyPos - notecardWidth - 100 - 10}px`;
+              bodyNotecard.style.transform = "rotate(5deg)";
+              console.log("Phase 7: Body notecard sliding in...");
+            }, bodyDelay);
+
+            setTimeout(() => {
+              let bellPos = assembledRect.right + gap;
+              bellPos = Math.min(
+                window.innerWidth - notecardWidth - padding,
+                bellPos,
+              );
+              bellNotecard.style.right = `${window.innerWidth - bellPos - notecardWidth + 175 - 10}px`;
+              bellNotecard.style.transform = "rotate(-4deg)";
+              console.log("Phase 7: Bell notecard sliding in...");
+            }, bellDelay);
+
+            console.log("Phase 7: Heading sliding in...");
+          }, 250); // 150ms after nametag starts sliding
         }, 50); // Small delay to ensure transition triggers
 
-        console.log("Phase 7: Yellow test squares created!");
+        console.log("Phase 7: Nametag, heading, and panels created!");
       },
       1000 + 1000 + 200 + 840 + 400 + 300 + 1100, // Phase 6 start + 1100ms (halfway through growth)
     );
@@ -800,7 +1084,9 @@
 
       // Remove info bloom elements
       document
-        .querySelectorAll(".info-bloom-left, .info-bloom-right")
+        .querySelectorAll(
+          ".info-bloom-left, .info-bloom-right, .info-bloom-heading, .info-bloom-nametag, .info-bloom-polaroid, .info-bloom-notecard-mouth, .info-bloom-notecard-body, .info-bloom-notecard-bell",
+        )
         .forEach((e) => e.remove());
 
       // Remove dimmed-module class from all modules
@@ -812,6 +1098,10 @@
       document.querySelectorAll(".module-image").forEach((img) => {
         img.style.opacity = "";
       });
+
+      document
+        .querySelectorAll(".info-bloom-heading")
+        .forEach((h) => h.remove());
 
       // Reset module selections
       selectedBody = null;
