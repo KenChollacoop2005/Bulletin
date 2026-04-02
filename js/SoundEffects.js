@@ -71,6 +71,7 @@ class SoundEffects {
 const soundEffects = new SoundEffects();
 
 // Load your sounds here
+// soundEffect.loadsound("name","foldername/filename.fileextention", volume percentage);
 soundEffects.loadSound("APF1", "sounds/SlideLong.mp3", 0.6);
 soundEffects.loadSound("APF2", "sounds/SlideShort1.mp3", 0.6);
 soundEffects.loadSound("APF3", "sounds/SlideShort2.mp3", 0.6);

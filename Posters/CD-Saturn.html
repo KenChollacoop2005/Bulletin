@@ -345,6 +345,45 @@
         opacity 0.4s ease 0s;
     }
 
+    .SaturnEditionLabel {
+      position: absolute;
+      top: 75px;
+      left: 50px;
+      width: 120px;
+      height: 106px;
+      transform: translate(-50px, -50px) rotate(0deg);
+      background: transparent;
+      border: none;
+      z-index: 4; /* one below blueprint at z-index 5 */
+      pointer-events: none;
+      transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+      opacity: 0;
+    }
+
+    .SaturnEditionLabel img {
+      width: 1020px;
+      height: auto;
+      transform: scale(0.9);
+      transform-origin: top left;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+
+    .poster-active.SaturnCD .panel.rightpanel .SaturnEditionLabel {
+      transform: translate(-307px, -76px) rotate(-4deg);
+      transition-delay: 1.4s;
+      opacity: 1;
+    }
+
+    .SaturnCD:not(.poster-active) .panel.rightpanel .SaturnEditionLabel {
+      transform: translate(-50px, -50px) rotate(0deg);
+      opacity: 0;
+      transition:
+        transform 0.4s ease 0s,
+        opacity 0.4s ease 0s;
+    }
+
     /* ============================================================================================================================ */
     /* 🛰️ SATURN MODULAR ELEMENTS SYSTEM 🛰️ */
     /* ============================================================================================================================ */
@@ -1104,6 +1143,13 @@
         />
         <label for="enceladus-select" id="module-Enceladus-hitbox"></label>
       </div>
+    </div>
+
+    <div class="SaturnEditionLabel" aria-hidden="true">
+      <img
+        src="Assets/SaturnEditionLabel.png"
+        alt="Saturn Deconstructed Edition Label"
+      />
     </div>
 
     <!-- Clickable overlay for right panel -->

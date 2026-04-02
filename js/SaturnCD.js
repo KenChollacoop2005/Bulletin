@@ -194,6 +194,7 @@
 
     // Phase 1: Add dim overlay to body
     document.body.classList.add("assembly-active");
+    window.animationRunning = true;
 
     // Prevent poster close during assembly
     if (poster) {
@@ -988,6 +989,14 @@
         }, 50); // Small delay to ensure transition triggers
 
         console.log("Phase 7: Nametag, heading, and panels created!");
+        // ============================================================
+        // PHASE 8: RE-ENABLE CLICKS
+        // ============================================================
+        setTimeout(() => {
+          window.animationRunning = false;
+          window.saturnAssemblyComplete = true;
+          console.log("Phase 8: Animation complete - clicks re-enabled.");
+        }, 2000); // 2000ms covers the slowest notecard (250 + 400 random + 1000 transition)
       },
       1000 + 1000 + 200 + 840 + 400 + 300 + 1100, // Phase 6 start + 1100ms (halfway through growth)
     );
@@ -1063,65 +1072,68 @@
 
   // Watch for poster closing → stop + reset
   const mo = new MutationObserver(() => {
+    mo.disconnect();
+
     const poster = document.querySelector(".poster.SaturnCD");
-    if (!poster) return;
-    const img = poster.querySelector("#saturn-cd-disk");
-    if (!img) return;
+    const img = poster?.querySelector("#saturn-cd-disk");
 
-    if (!poster.classList.contains("poster-active")) {
-      stopAndReset(img);
-      stopNoteEmitter();
-      // Reset assembly state
-      document.body.classList.remove("assembly-active");
-      assemblyInProgress = false; // RESET FLAG HERE
-      if (poster) poster.style.pointerEvents = "";
-
-      // Remove any clones
-      document.querySelectorAll(".assembly-clone").forEach((c) => c.remove());
-
-      // Remove assembled image from previous assembly
-      document.querySelectorAll(".assembled-saturn").forEach((a) => a.remove());
-
-      // Remove info bloom elements
-      document
-        .querySelectorAll(
-          ".info-bloom-left, .info-bloom-right, .info-bloom-heading, .info-bloom-nametag, .info-bloom-polaroid, .info-bloom-notecard-mouth, .info-bloom-notecard-body, .info-bloom-notecard-bell",
-        )
-        .forEach((e) => e.remove());
-
-      // Remove dimmed-module class from all modules
-      document.querySelectorAll(".dimmed-module").forEach((m) => {
-        m.classList.remove("dimmed-module");
+    // If poster is still active, just reconnect and do nothing
+    if (!poster || !img || poster.classList.contains("poster-active")) {
+      mo.observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ["class"],
       });
-
-      // Restore opacity to all module images
-      document.querySelectorAll(".module-image").forEach((img) => {
-        img.style.opacity = "";
-      });
-
-      document
-        .querySelectorAll(".info-bloom-heading")
-        .forEach((h) => h.remove());
-
-      // Reset module selections
-      selectedBody = null;
-      selectedMouth = null;
-      selectedBell = null;
-
-      // Uncheck all module checkboxes when poster closes
-      [
-        "titan-select",
-        "phoebe-select",
-        "pandoraK-select",
-        "pandoraM-select",
-        "pandoraS-select",
-        "tethys-select",
-        "enceladus-select",
-      ].forEach((id) => {
-        const checkbox = document.getElementById(id);
-        if (checkbox) checkbox.checked = false;
-      });
+      return;
     }
+
+    // Poster exists, has img, and is NOT active — run full cleanup
+    stopAndReset(img);
+    stopNoteEmitter();
+    document.body.classList.remove("assembly-active");
+    assemblyInProgress = false;
+    window.animationRunning = false;
+    window.saturnAssemblyComplete = false;
+    if (poster) poster.style.pointerEvents = "";
+
+    document.querySelectorAll(".assembly-clone").forEach((c) => c.remove());
+    document.querySelectorAll(".assembled-saturn").forEach((a) => a.remove());
+    document
+      .querySelectorAll(
+        ".info-bloom-left, .info-bloom-right, .info-bloom-heading, .info-bloom-nametag, .info-bloom-polaroid, .info-bloom-notecard-mouth, .info-bloom-notecard-body, .info-bloom-notecard-bell",
+      )
+      .forEach((e) => e.remove());
+    document.querySelectorAll(".dimmed-module").forEach((m) => {
+      m.classList.remove("dimmed-module");
+    });
+    document.querySelectorAll(".module-image").forEach((img) => {
+      img.style.opacity = "";
+    });
+
+    selectedBody = null;
+    selectedMouth = null;
+    selectedBell = null;
+
+    [
+      "titan-select",
+      "phoebe-select",
+      "pandoraK-select",
+      "pandoraM-select",
+      "pandoraS-select",
+      "tethys-select",
+      "enceladus-select",
+    ].forEach((id) => {
+      const checkbox = document.getElementById(id);
+      if (checkbox) checkbox.checked = false;
+    });
+
+    mo.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
   });
 
   mo.observe(document.body, {
@@ -1291,4 +1303,126 @@
       }
     }, 0);
   });
+  window.saturnDisassemble = function () {
+    window.animationRunning = true;
+    window.saturnAssemblyComplete = false;
+
+    const speed = 400; // ms — about 2.5x faster than the 1000ms entry
+
+    // ── Nametag ──────────────────────────────────────────
+    const nametag = document.querySelector(".info-bloom-nametag");
+    if (nametag) {
+      const nametagHeight = 810;
+      nametag.style.transition = `top ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      nametag.style.top = `-${nametagHeight + 50}px`;
+    }
+
+    // ── Heading ───────────────────────────────────────────
+    const heading = document.querySelector(".info-bloom-heading");
+    if (heading) {
+      const headingHeight = 540;
+      heading.style.transition = `top ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      heading.style.top = `-${headingHeight + 100}px`;
+    }
+
+    // ── Left panel (release notes) ────────────────────────
+    const releaseNotes = document.querySelector(".info-bloom-left");
+    if (releaseNotes) {
+      const releaseNotesWidth = 614.4;
+      releaseNotes.style.transition = `left ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      releaseNotes.style.left = `-${releaseNotesWidth + 200}px`;
+    }
+
+    // ── Polaroid ──────────────────────────────────────────
+    const polaroid = document.querySelector(".info-bloom-polaroid");
+    if (polaroid) {
+      const polaroidWidth = 990 * 0.3;
+      polaroid.style.transition = `left ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      polaroid.style.left = `-${polaroidWidth + 200}px`;
+    }
+
+    // ── Right panel (cutting board) ───────────────────────
+    const cuttingBoard = document.querySelector(".info-bloom-right");
+    if (cuttingBoard) {
+      const cuttingBoardWidth = 1200 * 0.6;
+      cuttingBoard.style.transition = `right ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      cuttingBoard.style.right = `-${cuttingBoardWidth + 200}px`;
+    }
+
+    // ── Notecards ─────────────────────────────────────────
+    const mouthNotecard = document.querySelector(".info-bloom-notecard-mouth");
+    if (mouthNotecard) {
+      const notecardWidth = 1920 * 0.45;
+      mouthNotecard.style.transition = `right ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      mouthNotecard.style.right = `-${notecardWidth + 600}px`;
+    }
+
+    const bodyNotecard = document.querySelector(".info-bloom-notecard-body");
+    if (bodyNotecard) {
+      const notecardWidth = 1920 * 0.45;
+      bodyNotecard.style.transition = `right ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      bodyNotecard.style.right = `-${notecardWidth}px`;
+    }
+
+    const bellNotecard = document.querySelector(".info-bloom-notecard-bell");
+    if (bellNotecard) {
+      const notecardWidth = 1920 * 0.45;
+      bellNotecard.style.transition = `right ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      bellNotecard.style.right = `-${notecardWidth}px`;
+    }
+    // Fade assembled image and undim simultaneously
+    const assembled = document.querySelector(".assembled-saturn");
+    if (assembled) {
+      assembled.style.transition = "opacity 1000ms ease";
+      assembled.style.opacity = "0";
+      setTimeout(() => assembled.remove(), 1000);
+    }
+
+    // Undim — CSS transition on body::before handles the fade automatically
+    document.body.classList.remove("assembly-active");
+
+    // Restore selected module images with fade
+    document.querySelectorAll(".module-image").forEach((img) => {
+      img.style.transition = "opacity 500ms ease";
+      img.style.opacity = "1";
+    });
+
+    // Remove dimmed class from non-selected modules
+    document.querySelectorAll(".dimmed-module").forEach((m) => {
+      m.classList.remove("dimmed-module");
+    });
+
+    // Reset checkboxes
+    [
+      "titan-select",
+      "phoebe-select",
+      "pandoraK-select",
+      "pandoraM-select",
+      "pandoraS-select",
+      "tethys-select",
+      "enceladus-select",
+    ].forEach((id) => {
+      const checkbox = document.getElementById(id);
+      if (checkbox) checkbox.checked = false;
+    });
+
+    // Reset state
+    selectedBody = null;
+    selectedMouth = null;
+    selectedBell = null;
+    assemblyInProgress = false;
+
+    // ── Cleanup after slides complete ─────────────────────
+    setTimeout(() => {
+      document
+        .querySelectorAll(
+          ".info-bloom-nametag, .info-bloom-heading, .info-bloom-left, .info-bloom-right, .info-bloom-polaroid, .info-bloom-notecard-mouth, .info-bloom-notecard-body, .info-bloom-notecard-bell",
+        )
+        .forEach((el) => el.remove());
+
+      console.log("Disassemble: info bloom cleared.");
+      // TODO: assembled image dismiss + blueprint restore will go here
+      window.animationRunning = false;
+    }, speed + 50); // slight buffer after transition
+  };
 })();

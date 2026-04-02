@@ -3,6 +3,9 @@ const corkboard = document.querySelector(".corkboard");
 
 let isZoomedIn = false;
 let activePoster = null;
+// Global animation lock - can be set by any poster JS file
+window.animationRunning = false;
+window.saturnAssemblyComplete = false;
 
 sceneContainer.style.transform = "scale(0.4)";
 corkboard.style.transform = "rotateX(30deg) rotateY(-30deg)";
@@ -296,8 +299,15 @@ function initPosterInteractions() {
 
   // Click outside to close posters
   document.addEventListener("click", (e) => {
+    if (window.animationRunning) return;
     if (activePoster) {
-      if (!e.target.closest(".poster-active")) closeActivePoster();
+      if (!e.target.closest(".poster-active")) {
+        if (window.saturnAssemblyComplete) {
+          window.saturnDisassemble();
+        } else {
+          closeActivePoster();
+        }
+      }
       return;
     }
     if (isZoomedIn && !e.target.closest(".corkboard")) {
