@@ -17,10 +17,11 @@ const posterFiles = [
   "Posters/Poster3.html",
   "Posters/AccessibilityPaper.html",
   "Posters/NameCard.html",
+  "Posters/SafeSlip.html",
   "Posters/CD-Saturn.html",
 ];
 // Overlay HTML files (like posters, but rendered on top of corkboard)
-const overlayFiles = ["Overlays/OverlayElements.html"];
+const overlayFiles = ["Overlays/SatCD-Tape.html", "Overlays/SafeSlipPin.html"];
 
 // Dynamically load posters into the corkboard
 async function loadPosters() {

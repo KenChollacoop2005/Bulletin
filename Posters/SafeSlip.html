@@ -1,0 +1,118 @@
+<div
+  class="poster SafeSlip"
+  style="
+    top: 55%;
+    left: 37%;
+    transform: translate(-50%, -50%) rotate(92deg);
+    width: 150px;
+    height: auto;
+  "
+>
+  <style>
+    .poster.SafeSlip {
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+      transition:
+        left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .poster-active.SafeSlip {
+      width: 330px !important;
+      height: auto !important;
+    }
+
+    .SafeSlip-flipper {
+      width: 100%;
+      perspective: 900px;
+      perspective-origin: center top;
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
+      transition: filter 0.4s ease;
+    }
+
+    .poster-active.SafeSlip .SafeSlip-flipper {
+      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
+    }
+
+    .SafeSlip-dipper {
+      width: 100%;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 1, 1) 1s;
+    }
+
+    .SafeSlip:not(.poster-active) .SafeSlip-dipper {
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0s;
+    }
+
+    .poster-active.SafeSlip .SafeSlip-dipper {
+      transform: translateY(187px);
+    }
+
+    .SafeSlip-inner {
+      position: relative;
+      width: 100%;
+      transform-style: preserve-3d;
+      transform-origin: top center;
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1.3s;
+    }
+
+    .SafeSlip:not(.poster-active) .SafeSlip-inner {
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1) 0s;
+    }
+
+    .poster-active.SafeSlip .SafeSlip-inner {
+      transform: rotateX(180deg);
+    }
+
+    .SafeSlip-front,
+    .SafeSlip-back {
+      width: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 2px;
+    }
+
+    .SafeSlip-front {
+      display: block;
+    }
+
+    .SafeSlip-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotateX(180deg);
+    }
+
+    .SafeSlip-front img,
+    .SafeSlip-back img {
+      width: 100%;
+      display: block;
+      border-radius: 2px;
+    }
+
+    .SafeSlip-flipper,
+    .SafeSlip-dipper,
+    .SafeSlip-inner,
+    .SafeSlip-front,
+    .SafeSlip-back {
+      pointer-events: none;
+    }
+  </style>
+
+  <div class="SafeSlip-flipper">
+    <div class="SafeSlip-dipper">
+      <div class="SafeSlip-inner">
+        <div class="SafeSlip-front">
+          <img src="Assets/SafeSlip/SafeSlip.png" alt="SafeSlip Front" />
+        </div>
+        <div class="SafeSlip-back">
+          <img src="Assets/SafeSlip/SafeSlipBack.png" alt="SafeSlip Back" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

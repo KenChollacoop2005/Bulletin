@@ -22,14 +22,14 @@
   let assemblyInProgress = false;
 
   const noteFiles = [
-    "Assets/Quarternote1.png",
-    "Assets/Quarternote2.png",
-    "Assets/Eigthnote1.png",
-    "Assets/Eigthnote2.png",
-    "Assets/Doublenote1.png",
-    "Assets/Doublenote2.png",
-    "Assets/Quadruplenote1.png",
-    "Assets/Quadruplenote2.png",
+    "Assets/Saturn/Quarternote1.png",
+    "Assets/Saturn/Quarternote2.png",
+    "Assets/Saturn/Eigthnote1.png",
+    "Assets/Saturn/Eigthnote2.png",
+    "Assets/Saturn/Doublenote1.png",
+    "Assets/Saturn/Doublenote2.png",
+    "Assets/Saturn/Quadruplenote1.png",
+    "Assets/Saturn/Quadruplenote2.png",
   ];
 
   // State — add this with your other state variables
@@ -600,7 +600,7 @@
           console.log(`Assembled configuration code: ${currentConfigCode}`);
 
           // Build image path directly from the parts
-          const imagePath = `Assets/AssembledSatMods/${selectedBody.charAt(0).toUpperCase() + selectedBody.slice(1)}-${selectedMouth.charAt(0).toUpperCase() + selectedMouth.slice(1)}-${selectedBell.charAt(0).toUpperCase() + selectedBell.slice(1)}.png`;
+          const imagePath = `Assets/Saturn/AssembledSatMods/${selectedBody.charAt(0).toUpperCase() + selectedBody.slice(1)}-${selectedMouth.charAt(0).toUpperCase() + selectedMouth.slice(1)}-${selectedBell.charAt(0).toUpperCase() + selectedBell.slice(1)}.png`;
 
           // Create assembled image
           const assembled = document.createElement("img");
@@ -684,7 +684,7 @@
         const nametagHeight = 810; // 1080px * 0.75 scaled
 
         const nametag = document.createElement("img");
-        nametag.src = "Assets/SaturnInfobloom/SaturnNametag.png";
+        nametag.src = "Assets/Saturn/SaturnInfobloom/SaturnNametag.png";
         nametag.className = "info-bloom-nametag";
         nametag.style.position = "fixed";
         nametag.style.width = `${nametagWidth}px`;
@@ -712,7 +712,7 @@
         const headingHeight = 540; // 1080px * 0.5 scaled
 
         const heading = document.createElement("img");
-        heading.src = "Assets/SaturnInfobloom/SaturnHeading.png";
+        heading.src = "Assets/Saturn/SaturnInfobloom/SaturnHeading.png";
         heading.className = "info-bloom-heading";
         heading.style.position = "fixed";
         heading.style.width = `${headingWidth}px`;
@@ -738,7 +738,8 @@
         const releaseNotesHeight = 1365; // 1092 * 0.6
 
         const releaseNotes = document.createElement("img");
-        releaseNotes.src = "Assets/SaturnInfobloom/SaturnReleaseNotes.png";
+        releaseNotes.src =
+          "Assets/Saturn/SaturnInfobloom/SaturnReleaseNotes.png";
         releaseNotes.className = "info-bloom-left";
         releaseNotes.style.position = "fixed";
         releaseNotes.style.width = `${releaseNotesWidth}px`;
@@ -765,7 +766,7 @@
         const polaroidHeight = 1150 * 0.3; // 25% size = 287.5px
 
         const polaroid = document.createElement("img");
-        polaroid.src = "Assets/SaturnInfobloom/SaturnTeamPic.png";
+        polaroid.src = "Assets/Saturn/SaturnInfobloom/SaturnTeamPic.png";
         polaroid.className = "info-bloom-polaroid";
         polaroid.style.position = "fixed";
         polaroid.style.width = `${polaroidWidth}px`;
@@ -792,7 +793,8 @@
         const cuttingBoardHeight = 1752 * 0.6;
 
         const cuttingBoard = document.createElement("img");
-        cuttingBoard.src = "Assets/SaturnInfobloom/SaturnCuttingBoard.png";
+        cuttingBoard.src =
+          "Assets/Saturn/SaturnInfobloom/SaturnCuttingBoard.png";
         cuttingBoard.className = "info-bloom-right";
         cuttingBoard.style.position = "fixed";
         cuttingBoard.style.width = `${cuttingBoardWidth}px`;
@@ -820,29 +822,35 @@
 
         // Determine which notecard images to use based on selections
         // Mouthpiece: pandoraK, pandoraM, or pandoraS
-        let mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraKNotecard.png"; // default
+        let mouthNotecardSrc =
+          "Assets/Saturn/SaturnInfobloom/PandoraKNotecard.png"; // default
         if (selectedMouth === "pandoraK") {
-          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraKNotecard.png";
+          mouthNotecardSrc =
+            "Assets/Saturn/SaturnInfobloom/PandoraKNotecard.png";
         } else if (selectedMouth === "pandoraM") {
-          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraMNotecard.png";
+          mouthNotecardSrc =
+            "Assets/Saturn/SaturnInfobloom/PandoraMNotecard.png";
         } else if (selectedMouth === "pandoraS") {
-          mouthNotecardSrc = "Assets/SaturnInfobloom/PandoraSNotecard.png";
+          mouthNotecardSrc =
+            "Assets/Saturn/SaturnInfobloom/PandoraSNotecard.png";
         }
 
         // Body: titan or phoebe
-        let bodyNotecardSrc = "Assets/SaturnInfobloom/TitanNotecard.png"; // default
+        let bodyNotecardSrc = "Assets/Saturn/SaturnInfobloom/TitanNotecard.png"; // default
         if (selectedBody === "titan") {
-          bodyNotecardSrc = "Assets/SaturnInfobloom/TitanNotecard.png";
+          bodyNotecardSrc = "Assets/Saturn/SaturnInfobloom/TitanNotecard.png";
         } else if (selectedBody === "phoebe") {
-          bodyNotecardSrc = "Assets/SaturnInfobloom/PhoebeNotecard.png";
+          bodyNotecardSrc = "Assets/Saturn/SaturnInfobloom/PhoebeNotecard.png";
         }
 
         // Bell: tethys or enceladus
-        let bellNotecardSrc = "Assets/SaturnInfobloom/EnceladusNotecard.png"; // default
+        let bellNotecardSrc =
+          "Assets/Saturn/SaturnInfobloom/EnceladusNotecard.png"; // default
         if (selectedBell === "tethys") {
-          bellNotecardSrc = "Assets/SaturnInfobloom/TethysNotecard.png";
+          bellNotecardSrc = "Assets/Saturn/SaturnInfobloom/TethysNotecard.png";
         } else if (selectedBell === "enceladus") {
-          bellNotecardSrc = "Assets/SaturnInfobloom/EnceladusNotecard.png";
+          bellNotecardSrc =
+            "Assets/Saturn/SaturnInfobloom/EnceladusNotecard.png";
         }
 
         // Mouthpiece Notecard
