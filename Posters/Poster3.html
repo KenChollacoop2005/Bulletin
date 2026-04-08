@@ -10,4 +10,33 @@
 >
   <h2>Poster 3</h2>
   <p>Some more sample content goes here for poster three. TO BE WORKED ON</p>
+
+  <!-- Pink hover detector  -->
+  <div
+    style="
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      background-color: pink;
+    "
+  >
+    <!-- Green square that flips -->
+    <div
+      style="
+        width: 60px;
+        height: 60px;
+        background-color: green;
+        transition: transform 0.6s ease;
+      "
+      class="flip-target"
+    ></div>
+  </div>
+
+  <style>
+    .poster-3 div:hover .flip-target {
+      transform: rotateY(180deg);
+    }
+  </style>
 </div>

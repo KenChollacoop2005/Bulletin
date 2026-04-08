@@ -299,6 +299,7 @@
 
     setTimeout(() => {
       console.log("Phase 2: Ascent beginning...");
+      soundEffects.play("CDfloat");
 
       // Calculate screen center and target positions
       const screenCenterX = window.innerWidth / 2;
@@ -396,7 +397,12 @@
     // ============================================================
     // PHASE 3: CHARGE-UP - Dramatic pause with scale growth
     // ============================================================
-
+    setTimeout(
+      () => {
+        soundEffects.play("CDslam");
+      },
+      1000 + 1000 + 650,
+    );
     setTimeout(
       () => {
         console.log("Phase 3: Dramatic pause - gathering presence...");
@@ -512,6 +518,7 @@
     setTimeout(
       () => {
         console.log("Phase 5: REVEAL - flash and swap!");
+        soundEffects.play("SatSnap");
 
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
@@ -914,6 +921,8 @@
         // SLIDE EVERYTHING IN IMMEDIATE
         // ============================================================
         setTimeout(() => {
+          soundEffects.play("CDcuttingboard");
+
           // Slide nametag down from top
           let nametagTop = assembledRect.top - gap - nametagHeight;
           nametagTop = Math.max(padding, nametagTop); // Clamp to screen
@@ -967,6 +976,7 @@
               );
               mouthNotecard.style.right = `${window.innerWidth - mouthPos - notecardWidth + 75 - 10}px`;
               mouthNotecard.style.transform = "rotate(0deg)";
+              soundEffects.play("CDcard1");
               console.log("Phase 7: Mouth notecard sliding in...");
             }, mouthDelay);
 
@@ -978,6 +988,7 @@
               );
               bodyNotecard.style.right = `${window.innerWidth - bodyPos - notecardWidth - 100 - 10}px`;
               bodyNotecard.style.transform = "rotate(5deg)";
+              soundEffects.play("CDcard2");
               console.log("Phase 7: Body notecard sliding in...");
             }, bodyDelay);
 
@@ -989,6 +1000,7 @@
               );
               bellNotecard.style.right = `${window.innerWidth - bellPos - notecardWidth + 175 - 10}px`;
               bellNotecard.style.transform = "rotate(-4deg)";
+              soundEffects.play("CDcard3");
               console.log("Phase 7: Bell notecard sliding in...");
             }, bellDelay);
 
@@ -1314,6 +1326,9 @@
   window.saturnDisassemble = function () {
     window.animationRunning = true;
     window.saturnAssemblyComplete = false;
+    soundEffects.play("SDCticket");
+    soundEffects.play("SDClanyard");
+    soundEffects.play("CDcard3");
 
     const speed = 400; // ms — about 2.5x faster than the 1000ms entry
 
@@ -1429,7 +1444,6 @@
         .forEach((el) => el.remove());
 
       console.log("Disassemble: info bloom cleared.");
-      // TODO: assembled image dismiss + blueprint restore will go here
       window.animationRunning = false;
     }, speed + 50); // slight buffer after transition
   };

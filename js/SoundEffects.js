@@ -92,6 +92,20 @@ soundEffects.loadSound("SatMod2", "sounds/SaturnModulars/2.mp3", 1);
 soundEffects.loadSound("SatMod3", "sounds/SaturnModulars/3.mp3", 0.4);
 soundEffects.loadSound("SatMod4", "sounds/SaturnModulars/4.mp3", 1);
 soundEffects.loadSound("SatMod5", "sounds/SaturnModulars/5.mp3", 0.2);
+soundEffects.loadSound("SatSnap", "sounds/CDassemblySnap.wav", 0.07);
+soundEffects.loadSound("CDcuttingboard", "sounds/SlideLong.mp3", 0.1);
+soundEffects.loadSound("CDcard1", "sounds/NotecardSldie.wav", 0.3);
+soundEffects.loadSound("CDcard2", "sounds/NotecardSlide2.wav", 0.2);
+soundEffects.loadSound("CDcard3", "sounds/NotecardSlide3.mp3", 0.3);
+soundEffects.loadSound("CDfloat", "sounds/CDAssemblyFloat.mp3", 0.16);
+soundEffects.loadSound("CDslam", "sounds/CDAssemblySlam.mp3", 0.7);
+soundEffects.loadSound("SSflip", "sounds/SSflip.wav", 0.5);
+soundEffects.loadSound("SSslide1", "sounds/StickyNoteSlide1.mp3", 0.5);
+soundEffects.loadSound("SSslide2", "sounds/StickyNoteSlide2.mp3", 0.5);
+soundEffects.loadSound("SSslide3", "sounds/StickyNoteSlide3.mp3", 0.5);
+soundEffects.loadSound("SSslide4", "sounds/StickyNoteSlide4.mp3", 0.5);
+soundEffects.loadSound("SSslide5", "sounds/StickyNoteSlide5.mp3", 0.5);
+soundEffects.loadSound("SSclose", "sounds/PaperRustle.mp3", 0.04);
 
 // Make it available globally
 window.soundEffects = soundEffects;

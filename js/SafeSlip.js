@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
           el.style.transition = `top ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
           el.style.top = `${window.innerHeight + 200}px`;
         }
+        soundEffects.play("SSclose");
       });
 
       setTimeout(() => {
@@ -44,6 +45,9 @@ document.addEventListener("DOMContentLoaded", () => {
         bloomTimeout = setTimeout(() => {
           triggerInfoBloom(poster, bloomElements);
         }, 1800);
+        setTimeout(() => {
+          soundEffects.play("SSflip");
+        }, 800);
       }
 
       if (!poster.classList.contains("poster-active")) {
@@ -256,28 +260,33 @@ function triggerInfoBloom(poster, bloomElements) {
       let rightPos = posterRect.right + gap;
       notecardA.style.right = `${window.innerWidth - rightPos - notecardWidth + 300}px`;
       notecardA.style.transform = "rotate(5deg)";
+      soundEffects.play("SSslide1");
     }, delayA);
 
     setTimeout(() => {
       let rightPos = posterRect.right + gap;
       notecardB.style.right = `${window.innerWidth - rightPos - notecardWidth2 + 360}px`;
       notecardB.style.transform = "rotate(-8deg)";
+      soundEffects.play("SSslide2");
     }, delayB);
 
     setTimeout(() => {
       let rightPos = posterRect.right + gap;
       notecardC.style.right = `${window.innerWidth - rightPos - notecardWidth3 - 256}px`;
       notecardC.style.transform = "rotate(19deg)";
+      soundEffects.play("SSslide3");
     }, delayC);
 
     setTimeout(() => {
       notecardD.style.top = `${padding - 70}px`;
       notecardD.style.transform = "rotate(0deg)";
+      soundEffects.play("SSslide4");
     }, delayD);
 
     setTimeout(() => {
       notecardE.style.top = `${window.innerHeight - notecardHeight5 - padding + 120}px`;
       notecardE.style.transform = "rotate(0deg)";
+      soundEffects.play("SSslide5");
     }, delayE);
   }, 50);
 }
