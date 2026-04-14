@@ -19,6 +19,7 @@ const posterFiles = [
   "Posters/NameCard.html",
   "Posters/SafeSlip.html",
   "Posters/CD-Saturn.html",
+  "Posters/GPSolar.html",
 ];
 // Overlay HTML files (like posters, but rendered on top of corkboard)
 const overlayFiles = ["Overlays/SatCD-Tape.html", "Overlays/SafeSlipPin.html"];

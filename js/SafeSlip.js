@@ -7,6 +7,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initObserver.disconnect();
 
+    // Preload all bloom assets so they're ready on first click
+    const preloadSrcs = [
+      "Assets/SafeSlip/SafeSlipBoard.png",
+      "Assets/SafeSlip/SafeSlipLock.png",
+      "Assets/SafeSlip/SafeSlipMask.png",
+      "Assets/SafeSlip/SafeSlipMask2.png",
+      "Assets/SafeSlip/SafeSlipDisplay.png",
+      "Assets/SafeSlip/SafeSlipTop.png",
+      "Assets/SafeSlip/SafeSlipTop.gif",
+    ];
+
+    preloadSrcs.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+
     let bloomElements = [];
     let bloomTimeout = null;
     const speed = 350;
