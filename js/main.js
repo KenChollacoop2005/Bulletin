@@ -65,8 +65,8 @@ const heavyAssets = [
   "Assets/SafeSlip/SafeSlipTop.png",
   "Assets/SafeSlip/SafeSlipTop.gif",
   // NameCard
-  "Assets/Namecard/Namecard.jpg",
-  "Assets/Namecard/NamecardBack.jpg",
+  "Assets/NameCard/Namecard.jpg",
+  "Assets/NameCard/NamecardBack.jpg",
 ];
 
 // ============================================================
