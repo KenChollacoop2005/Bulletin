@@ -130,19 +130,8 @@
   // POSTER STATE WATCHER
   // ============================================================
   const mo = new MutationObserver(() => {
-    mo.disconnect();
-
     const poster = document.querySelector(".poster.GPSolar");
-
-    if (!poster) {
-      mo.observe(document.body, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-      return;
-    }
+    if (!poster) return;
 
     if (poster.classList.contains("poster-active")) {
       // poster just opened — wait for opening animation to finish
@@ -154,19 +143,12 @@
       openingAnimationDone = false;
       clearSelection();
     }
+  });
 
-    mo.observe(document.body, {
-      subtree: true,
-      childList: true,
+  window._gpsMOInit = function (poster) {
+    mo.observe(poster, {
       attributes: true,
       attributeFilter: ["class"],
     });
-  });
-
-  mo.observe(document.body, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: ["class"],
-  });
+  };
 })();

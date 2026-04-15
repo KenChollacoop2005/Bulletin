@@ -119,15 +119,9 @@ function dismissLoadingScreen() {
 document.addEventListener(
   "click",
   (e) => {
-    // Let resume button work without triggering continue
+    console.log("capture hit", loadingComplete, userClickedThrough);
     if (e.target.closest(".loading-resume-btn")) return;
-    if (!loadingComplete || userClickedThrough) return;
-    if (
-      !loadingScreen.contains(e.target) &&
-      loadingScreen.style.display === "none"
-    )
-      return;
-
+    if (userClickedThrough || !loadingComplete) return; // bail fast, nothing more needed
     userClickedThrough = true;
     dismissLoadingScreen();
   },
@@ -412,4 +406,14 @@ function initPosterInteractions() {
 // KICK EVERYTHING OFF — posters/overlays + asset decoding run
 // in parallel. Loading bar reflects decode progress.
 // ============================================================
-Promise.all([loadPosters().then(() => loadOverlays()), decodeAssets()]);
+Promise.all([
+  loadPosters().then(() => {
+    loadOverlays();
+    const saturnPoster = document.querySelector(".poster.SaturnCD");
+    if (saturnPoster && window._saturnMOInit)
+      window._saturnMOInit(saturnPoster);
+    const gpsPoster = document.querySelector(".poster.GPSolar");
+    if (gpsPoster && window._gpsMOInit) window._gpsMOInit(gpsPoster);
+  }),
+  decodeAssets(),
+]);

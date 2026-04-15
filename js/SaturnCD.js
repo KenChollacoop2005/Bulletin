@@ -1099,9 +1099,7 @@
 
     // If poster is still active, just reconnect and do nothing
     if (!poster || !img || poster.classList.contains("poster-active")) {
-      mo.observe(document.body, {
-        subtree: true,
-        childList: true,
+      mo.observe(poster, {
         attributes: true,
         attributeFilter: ["class"],
       });
@@ -1148,20 +1146,18 @@
       if (checkbox) checkbox.checked = false;
     });
 
-    mo.observe(document.body, {
-      subtree: true,
-      childList: true,
+    mo.observe(document.querySelector(".poster.SaturnCD"), {
       attributes: true,
       attributeFilter: ["class"],
     });
   });
 
-  mo.observe(document.body, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: ["class"],
-  });
+  window._saturnMOInit = function (poster) {
+    mo.observe(poster, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  };
 
   // Initialize
   (function initIfPresent() {
