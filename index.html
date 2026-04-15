@@ -20,16 +20,172 @@
       href="favicon/favicon-16x16.png"
     />
     <link rel="icon" href="favicon/favicon.ico" />
-
     <link
       rel="apple-touch-icon"
       sizes="180x180"
       href="favicon/apple-touch-icon.png"
     />
-
     <link rel="manifest" href="favicon/site.webmanifest" />
+
+    <style>
+      /* ============================================================
+         LOADING SCREEN
+         position: fixed is critical — without it the div pushes
+         layout and shifts the corkboard down
+      ============================================================ */
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 120px; /* was 80px × 1.5 */
+        padding: 90px; /* was 60px × 1.5 */
+        box-sizing: border-box;
+      }
+
+      #loading-left,
+      #loading-right {
+        flex: 1;
+        max-width: 420px; /* was 280px × 1.5 */
+      }
+
+      #loading-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 36px; /* was 24px × 1.5 */
+        flex-shrink: 0;
+      }
+
+      #loading-graphic {
+        width: 550px;
+        height: auto;
+      }
+
+      #loading-graphic img {
+        width: 100%;
+        height: 100%;
+      }
+
+      #loading-bar-track {
+        width: 270px; /* was 180px × 1.5 */
+        height: 6px; /* was 4px × 1.5 */
+        margin-top: -120px;
+        margin-bottom: 120px;
+        background: #222;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      #loading-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #aad816;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+
+      #loading-continue {
+        font-size: 16px; /* was ~11px × 1.5 */
+        letter-spacing: 0.18em;
+        color: #555;
+        text-transform: uppercase;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        user-select: none;
+      }
+
+      /* ── Left column (professional / cold) ── */
+      #loading-left .loading-label,
+      #loading-right .loading-label {
+        font-size: 13px; /* was 9px × 1.5 */
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #aaa;
+        margin: 0 0 21px 0; /* was 14px × 1.5 */
+      }
+
+      #loading-left .loading-body {
+        font-size: 19px; /* was 13px × 1.5 */
+        line-height: 1.75;
+        color: #aaa;
+        margin: 0;
+      }
+
+      .loading-resume-btn {
+        display: inline-block;
+        margin-top: 33px; /* was 22px × 1.5 */
+        font-size: 16px; /* was 11px × 1.5 */
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #444;
+        text-decoration: none;
+        border: 1px solid #2a2a2a;
+        padding: 13px 27px; /* was 9px 18px × 1.5 */
+        transition:
+          color 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .loading-resume-btn:hover {
+        color: #ccc;
+        border-color: #555;
+      }
+
+      /* ── Right column (warm / personal) ── */
+      #loading-right .loading-body {
+        font-size: 19px; /* was 13px × 1.5 */
+        line-height: 1.75;
+        color: #aaa;
+        margin: 0;
+      }
+    </style>
   </head>
   <body>
+    <!-- ============================================================
+         LOADING SCREEN
+         JS will set display:none on this once loading is complete
+         and the user clicks through
+    ============================================================ -->
+    <div id="loading-screen">
+      <!-- Left: professional / resume off-ramp -->
+      <div id="loading-left">
+        <p class="loading-label">Before you enter</p>
+        <p class="loading-body">
+          This portfolio is a creative rendition of who I am — built to be
+          explored, not scanned. It is not a resume, and it does not read like
+          one.
+        </p>
+        <a href="#" class="loading-resume-btn">View resume instead →</a>
+      </div>
+
+      <!-- Center: graphic + progress -->
+      <div id="loading-center">
+        <div id="loading-graphic">
+          <img src="Assets/NonPosters/LoadingSplash.png" alt="K.C." />
+        </div>
+        <div id="loading-bar-track">
+          <div id="loading-bar-fill"></div>
+        </div>
+        <p id="loading-continue">Click anywhere to continue</p>
+      </div>
+
+      <!-- Right: warm / personal invitation -->
+      <div id="loading-right">
+        <p class="loading-label">Welcome</p>
+        <p class="loading-body">
+          But if you want to know me on a personal level — the projects, the
+          timelines, the story — this is the place. This is me, in my entirety.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         MAIN PORTFOLIO
+    ============================================================ -->
     <div class="scene-container">
       <div class="corkboard">
         <!-- Posters will be dynamically loaded here -->

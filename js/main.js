@@ -24,24 +24,128 @@ const posterFiles = [
 // Overlay HTML files (like posters, but rendered on top of corkboard)
 const overlayFiles = ["Overlays/SatCD-Tape.html", "Overlays/SafeSlipPin.html"];
 
-// Dynamically load posters into the corkboard
+// ============================================================
+// HEAVY ASSETS — images to decode during the loading screen
+// Only the laggy ones, not every asset on the board
+// ============================================================
+const heavyAssets = [
+  // GP Solar (all)
+  "Assets/GPSolar/GPSbase.png",
+  "Assets/GPSolar/GPSbase2.png",
+  "Assets/GPSolar/GPSrope.png",
+  "Assets/GPSolar/GPSpanel.png",
+  "Assets/GPSolar/GPSroots1.png",
+  "Assets/GPSolar/GPSroots2.png",
+  "Assets/GPSolar/GPSreport.png",
+  "Assets/GPSolar/GPSpush1.png",
+  "Assets/GPSolar/GPSpush2.png",
+  "Assets/GPSolar/GPSpush3.png",
+  "Assets/GPSolar/GPSinstallation1.png",
+  "Assets/GPSolar/GPSinstallation2.png",
+  "Assets/GPSolar/GPSinstallation3.png",
+  "Assets/GPSolar/GPSrecognition1.png",
+  "Assets/GPSolar/GPSrecognition2.png",
+  "Assets/GPSolar/GPSrecognition3.png",
+  "Assets/GPSolar/GPSrecognition4.png",
+  // SafeSlip
+  "Assets/SafeSlip/SafeSlipBoard.png",
+  "Assets/SafeSlip/SafeSlipLock.png",
+  "Assets/SafeSlip/SafeSlipMask.png",
+  "Assets/SafeSlip/SafeSlipMask2.png",
+  "Assets/SafeSlip/SafeSlipDisplay.png",
+  "Assets/SafeSlip/SafeSlipTop.png",
+  "Assets/SafeSlip/SafeSlipTop.gif",
+  // NameCard
+  "Assets/Namecard/Namecard.png",
+  "Assets/Namecard/NamecardBack.png",
+];
+
+// ============================================================
+// LOADING SCREEN LOGIC
+// ============================================================
+const loadingScreen = document.getElementById("loading-screen");
+const barFill = document.getElementById("loading-bar-fill");
+const continueText = document.getElementById("loading-continue");
+
+let loadingComplete = false;
+let userClickedThrough = false;
+
+function decodeAssets() {
+  let resolved = 0;
+  const total = heavyAssets.length;
+
+  const promises = heavyAssets.map((src) => {
+    const img = new Image();
+    img.src = src;
+    return img
+      .decode()
+      .catch(() => {}) // if one fails (e.g. gif), don't block everything
+      .finally(() => {
+        resolved++;
+        // Update progress bar as each image resolves
+        const pct = (resolved / total) * 100;
+        barFill.style.width = `${pct}%`;
+
+        // When all done, show the continue prompt
+        if (resolved === total) {
+          loadingComplete = true;
+          continueText.style.opacity = "1";
+        }
+      });
+  });
+
+  return Promise.all(promises);
+}
+
+function dismissLoadingScreen() {
+  // Fade out
+  loadingScreen.style.transition = "opacity 0.6s ease";
+  loadingScreen.style.opacity = "0";
+  setTimeout(() => {
+    loadingScreen.style.display = "none"; // fully remove from interaction
+  }, 620); // slightly after fade completes
+}
+
+// Click anywhere to continue — but only once loading is done
+document.addEventListener(
+  "click",
+  (e) => {
+    // Let resume button work without triggering continue
+    if (e.target.closest(".loading-resume-btn")) return;
+    if (!loadingComplete || userClickedThrough) return;
+    if (
+      !loadingScreen.contains(e.target) &&
+      loadingScreen.style.display === "none"
+    )
+      return;
+
+    userClickedThrough = true;
+    dismissLoadingScreen();
+  },
+  { capture: true },
+); // capture: true so this fires before main.js poster click handlers
+
+// ============================================================
+// POSTER + OVERLAY LOADING
+// ============================================================
 async function loadPosters() {
   for (const file of posterFiles) {
     const response = await fetch(file);
     const html = await response.text();
     corkboard.insertAdjacentHTML("beforeend", html);
   }
-  // After loading, initialize interactions
   initPosterInteractions();
 }
+
 async function loadOverlays() {
-  const overlayLayer = corkboard; // overlays sit inside corkboard, same container
+  const overlayLayer = corkboard;
   for (const file of overlayFiles) {
     const response = await fetch(file);
     const html = await response.text();
     overlayLayer.insertAdjacentHTML("beforeend", html);
   }
 }
+
 // Poster click / zoom / pamphlet / name card logic
 function initPosterInteractions() {
   const posters = document.querySelectorAll(".poster");
@@ -49,15 +153,13 @@ function initPosterInteractions() {
   function closeActivePoster() {
     if (!activePoster) return;
 
-    // Special handling for name-card stacks
     if (activePoster.classList.contains("name-card-stack")) {
       const frontPage = activePoster.querySelector(".name-card-page.is-front");
       const backPage = activePoster.querySelector(".name-card-page.is-back");
 
       if (frontPage.classList.contains("page-back")) {
-        // If back page is showing, swap pages first
         swapNameCardPages(activePoster, () => finishClose(activePoster));
-        return; // exit now, will finish close after swap
+        return;
       }
     }
 
@@ -67,7 +169,6 @@ function initPosterInteractions() {
   function finishClose(poster) {
     if (poster.classList.contains("pamphlet")) {
       poster.classList.remove("open");
-      // also remove any flipped state when closing
       const li = poster.querySelector(".SDCLanyard-inner");
       if (li) li.classList.remove("flipped");
     }
@@ -76,11 +177,8 @@ function initPosterInteractions() {
     poster.style.top = poster.dataset.originalTop;
     poster.style.transform = poster.dataset.originalTransform;
 
-    // ============ SOUND EFFECTS ============
-    // Stop all currently playing sounds first
     soundEffects.stopAll();
 
-    // Play close sound for APFolder
     if (poster.classList.contains("APFolder")) {
       soundEffects.play("APFClose");
     }
@@ -97,13 +195,11 @@ function initPosterInteractions() {
     if (poster.classList.contains("pamphlet")) {
       soundEffects.play("SDCPclose");
     }
-    // =======================================
 
     activePoster = null;
     corkboard.classList.remove("has-active");
   }
 
-  // Helper to swap name card pages programmatically
   function swapNameCardPages(stack, callback) {
     const currentFront = stack.querySelector(".name-card-page.is-front");
     const currentBack = stack.querySelector(".name-card-page.is-back");
@@ -121,7 +217,6 @@ function initPosterInteractions() {
 
       currentFront.classList.remove("moving-out", "is-front");
       currentFront.classList.add("is-back");
-
       currentBack.classList.remove("is-back");
       currentBack.classList.add("is-front");
 
@@ -159,65 +254,47 @@ function initPosterInteractions() {
           setTimeout(() => poster.classList.add("open"), 550);
         }
 
-        // ============ SOUND EFFECTS ============
-        // Play sounds for APFolder panels with staggered delays
         if (poster.classList.contains("APFolder")) {
-          // Left panel
           setTimeout(() => {
             soundEffects.play("APF1");
-          }, 400); // 550ms = 0.55s delay
-
-          // Polaroid panel
+          }, 400);
           setTimeout(() => {
             soundEffects.play("APF2");
           }, 150);
-
-          // Right panel
           setTimeout(() => {
             soundEffects.play("APF3");
           }, 100);
         }
         if (poster.classList.contains("SaturnCD")) {
-          // CD Case Opens
           setTimeout(() => {
             soundEffects.play("SCDopen");
           }, 400);
-
-          // Slide Out Blueprint
           setTimeout(() => {
             soundEffects.play("SCDbpslide");
           }, 800);
         }
         if (poster.classList.contains("name-card-stack")) {
-          // NameCard newspaper pickup
           setTimeout(() => {
             soundEffects.play("NCpickup");
           }, 10);
         }
         if (poster.classList.contains("pamphlet")) {
-          // Pamphlet slideouts, no open sound
-          // Slide Out polaroid
           setTimeout(() => {
             soundEffects.play("SDCpolaroid");
           }, 350);
-          // Slide out lanyard
           setTimeout(() => {
             soundEffects.play("SDClanyard");
           }, 700);
-          // Slide Out ticket1
           setTimeout(() => {
             soundEffects.play("SDCticket");
           }, 900);
-          // Slide Out ticket2
           setTimeout(() => {
             soundEffects.play("SDCticket");
           }, 1100);
         }
-        // =======================================
       }
     });
 
-    // --- Pamphlet lanyard wiring (attach overlay click to toggle flip) ---
     const lanyardClick = poster.querySelector(".SDCLanyard-click");
     const lanyardInner = poster.querySelector(".SDCLanyard-inner");
     if (lanyardClick && lanyardInner) {
@@ -225,15 +302,11 @@ function initPosterInteractions() {
         ev.stopPropagation();
         if (!poster.classList.contains("poster-active")) return;
         lanyardInner.classList.toggle("flipped");
-
-        // ============ SOUND EFFECT ============
         soundEffects.play("SDClanyardFlip");
-        // ======================================
       });
     }
   });
 
-  // Name card page swap (if it exists)
   const stack = document.querySelector(".name-card-stack");
   if (stack) {
     let swapping = false;
@@ -260,7 +333,6 @@ function initPosterInteractions() {
 
         currentFront.classList.remove("moving-out", "is-front");
         currentFront.classList.add("is-back");
-
         currentBack.classList.remove("is-back");
         currentBack.classList.add("is-front");
 
@@ -280,26 +352,20 @@ function initPosterInteractions() {
         ".name-card-page.is-front .paperclip-container",
       );
       if (!frontClip) return;
-
       const rect = frontClip.getBoundingClientRect();
       if (pointInRect(e.clientX, e.clientY, rect)) {
         swapPages(e);
       }
     });
 
-    // ============ WATCH FOR PAGE SWAPPING ============
-    // Listen for the animation/transition that happens during swap
     stack.addEventListener("transitionstart", (e) => {
-      // Check if it's the moving-out transition
       if (e.target.classList.contains("moving-out")) {
         soundEffects.stopAll();
         soundEffects.play("NCchange");
       }
     });
-    // =================================================
   }
 
-  // Click outside to close posters
   document.addEventListener("click", (e) => {
     if (window.animationRunning) return;
     if (activePoster) {
@@ -320,7 +386,6 @@ function initPosterInteractions() {
     }
   });
 
-  // Keyboard handling: 'f' flips the lanyard (if a pamphlet is active), Escape closes
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (activePoster) closeActivePoster();
@@ -334,7 +399,8 @@ function initPosterInteractions() {
   });
 }
 
-// Start by loading posters
-loadPosters().then(() => {
-  loadOverlays();
-});
+// ============================================================
+// KICK EVERYTHING OFF — posters/overlays + asset decoding run
+// in parallel. Loading bar reflects decode progress.
+// ============================================================
+Promise.all([loadPosters().then(() => loadOverlays()), decodeAssets()]);
