@@ -50,7 +50,7 @@ const heavyAssets = [
   "Assets/GPSolar/GPSrecognition2.jpg",
   "Assets/GPSolar/GPSrecognition3.jpg",
   "Assets/GPSolar/GPSrecognition4.png",
-  "Assets/GPSolar/GPSreport.jpg",
+  "Assets/GPSolar/GPSreport.png",
   "Assets/GPSolar/GPSroots1.jpg",
   "Assets/GPSolar/GPSroots2.jpg",
   "Assets/GPSolar/GPSrope.png",
