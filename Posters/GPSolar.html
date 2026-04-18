@@ -21,7 +21,7 @@
         left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
         top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
         transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-      content-visibility: auto;
+      overflow: visible;
     }
 
     .poster-active.GPSolar {
@@ -36,6 +36,7 @@
       position: relative;
       width: 100%;
       pointer-events: none;
+      overflow: visible;
     }
 
     .GPSolar-base,
@@ -280,7 +281,7 @@
       z-index: 2;
       opacity: 0;
       transform: rotate(-9deg) scale(0.32) translateY(-1480px)
-        translateX(-500px);
+        translateX(-150px);
       transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0s;
     }
 
@@ -302,37 +303,51 @@
     .GPS-charm {
       position: absolute;
       left: 630px;
-      width: 100px;
-      height: 100px;
-      pointer-events: auto;
+      width: 710px;
+      height: auto;
+      pointer-events: none;
       cursor: pointer;
       transition: filter 0.2s ease;
       z-index: 10;
     }
 
+    .poster-active.GPSolar .GPS-charm {
+      pointer-events: auto;
+    }
+
+    .GPS-charm img {
+      height: 100%;
+      width: auto;
+      display: block;
+      pointer-events: none;
+    }
+
+    .poster-active.GPSolar .GPS-charm img {
+      pointer-events: auto;
+    }
     #charm-roots {
-      top: 720px;
-      background: red;
+      top: 408px;
+      left: -6px;
     }
     #charm-push {
-      top: 1186.67px;
-      background: orange;
+      top: 870px;
+      left: -6px;
     }
     #charm-installation {
-      top: 1653.33px;
-      background: yellow;
+      top: 1414px;
+      left: -6px;
     }
     #charm-recognition {
-      top: 2120px;
-      background: green;
+      top: 2027px;
+      left: -6px;
     }
     #charm-board {
-      top: 2586.67px;
-      background: blue;
+      top: 2590px;
+      left: -6px;
     }
     #charm-legacy {
-      top: 3053.33px;
-      background: purple;
+      top: 2927px;
+      left: -6px;
     }
 
     .GPS-charm:hover {
@@ -748,20 +763,31 @@
         src="Assets/GPSolar/GPSrope.png"
         alt="GP Solar Rope"
       />
-      <div class="GPS-charm" id="charm-roots" data-charm="roots"></div>
-      <div class="GPS-charm" id="charm-push" data-charm="push"></div>
-      <div
-        class="GPS-charm"
-        id="charm-installation"
-        data-charm="installation"
-      ></div>
-      <div
-        class="GPS-charm"
-        id="charm-recognition"
-        data-charm="recognition"
-      ></div>
-      <div class="GPS-charm" id="charm-board" data-charm="board"></div>
-      <div class="GPS-charm" id="charm-legacy" data-charm="legacy"></div>
+
+      <div class="GPS-charm" id="charm-roots" data-charm="roots">
+        <img src="Assets/GPSolar/RootsCharm.png" alt="Roots Charm" />
+      </div>
+      <div class="GPS-charm" id="charm-push" data-charm="push">
+        <img src="Assets/GPSolar/PushCharm.png" alt="Push Charm" />
+      </div>
+      <div class="GPS-charm" id="charm-installation" data-charm="installation">
+        <img
+          src="Assets/GPSolar/InstallationCharm.png"
+          alt="Installation Charm"
+        />
+      </div>
+      <div class="GPS-charm" id="charm-recognition" data-charm="recognition">
+        <img
+          src="Assets/GPSolar/RecognitionCharm.png"
+          alt="Recognition Charm"
+        />
+      </div>
+      <div class="GPS-charm" id="charm-board" data-charm="board">
+        <img src="Assets/GPSolar/BoardCharm.png" alt="Board Charm" />
+      </div>
+      <div class="GPS-charm" id="charm-legacy" data-charm="legacy">
+        <img src="Assets/GPSolar/LegacyCharm.png" alt="Legacy Charm" />
+      </div>
     </div>
 
     <!-- ============================================================ -->

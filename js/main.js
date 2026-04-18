@@ -119,7 +119,6 @@ function dismissLoadingScreen() {
 document.addEventListener(
   "click",
   (e) => {
-    console.log("capture hit", loadingComplete, userClickedThrough);
     if (e.target.closest(".loading-resume-btn")) return;
     if (userClickedThrough || !loadingComplete) return; // bail fast, nothing more needed
     userClickedThrough = true;

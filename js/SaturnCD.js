@@ -228,8 +228,6 @@
       nameMap[selectedBell],
     ];
 
-    console.log("Selected module names:", selectedModuleNames);
-
     // Dim all non-selected modules
     allModules.forEach((moduleName) => {
       if (!selectedModuleNames.includes(moduleName)) {
