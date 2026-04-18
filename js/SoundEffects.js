@@ -106,6 +106,12 @@ soundEffects.loadSound("SSslide3", "sounds/StickyNoteSlide3.mp3", 0.5);
 soundEffects.loadSound("SSslide4", "sounds/StickyNoteSlide4.mp3", 0.5);
 soundEffects.loadSound("SSslide5", "sounds/StickyNoteSlide5.mp3", 0.5);
 soundEffects.loadSound("SSclose", "sounds/PaperRustle.mp3", 0.04);
+soundEffects.loadSound("GPSopen", "sounds/bag.mp3", 0.4);
+soundEffects.loadSound("GPSslide", "sounds/LeatherRustle1.mp3", 0.75);
+soundEffects.loadSound("GPSclose", "sounds/CanvasTent.wav", 0.15);
+soundEffects.loadSound("GPSstack", "sounds/GPSstack.mp3", 0.5);
+soundEffects.loadSound("GPSclick", "sounds/PlasticClick.wav", 0.3);
+soundEffects.loadSound("GPSpaper", "sounds/GPSpaper.mp3", 0.2);
 
 // Make it available globally
 window.soundEffects = soundEffects;

@@ -56,6 +56,12 @@ const heavyAssets = [
   "Assets/GPSolar/GPSrope.png",
   "Assets/GPSolar/GPStop.png",
   "Assets/GPSolar/GPStop2.png",
+  "Assets/GPSolar/PushCharm.png",
+  "Assets/GPSolar/RootsCharm.png",
+  "Assets/GPSolar/InstallationCharm.png",
+  "Assets/GPSolar/RecognitionCharm.png",
+  "Assets/GPSolar/BoardCharm.png",
+  "Assets/GPSolar/LegacyCharm.png",
   // SafeSlip
   "Assets/SafeSlip/SafeSlipBoard.png",
   "Assets/SafeSlip/SafeSlipLock.png",
