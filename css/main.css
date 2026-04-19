@@ -75,6 +75,12 @@ body {
   filter: drop-shadow(0 0 10px rgba(255, 255, 200, 0.8));
 }
 
+/* suppress global hover scale for GPSolar — too large a bounding box */
+.zoomed-in .poster.GPSolar:hover {
+  transform: none;
+  filter: drop-shadow(0 0 40px rgba(255, 255, 200, 0.8));
+}
+
 .poster-active {
   left: 50% !important;
   top: 50% !important;

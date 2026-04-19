@@ -51,7 +51,7 @@
   const GRAVITY = 0.018; // restoring force toward rest (higher = snappier return)
   const DAMPING = 0.88; // velocity multiplier per frame (lower = faster decay)
   const SWIPE_SCALE = 0.026; // how much mouse velocity translates to angular impulse
-  const MAX_ANGLE = 18; // degrees — maximum swing limit
+  const MAX_ANGLE = 22; // degrees — maximum swing limit
   const NEIGHBOR_RATIO = 0.38; // fraction of impulse passed to immediate neighbors
   const CLICK_IMPULSE = 2; // degrees/frame added on click jiggle
 
@@ -296,7 +296,7 @@
 
     const el = document.elementFromPoint(e.clientX, e.clientY);
 
-    allCharms.forEach((c) => (c.style.pointerEvents = "auto"));
+    allCharms.forEach((c) => (c.style.pointerEvents = "")); // clear inline — let CSS take over
 
     const charm = el?.closest(".GPS-charm");
     if (!charm) return;

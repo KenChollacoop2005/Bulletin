@@ -16,12 +16,13 @@
       background: transparent;
       padding: 0;
       box-shadow: none;
-      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.5));
       transition:
         left 0.55s cubic-bezier(0.22, 1, 0.36, 1),
         top 0.55s cubic-bezier(0.22, 1, 0.36, 1),
         transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: visible;
+      pointer-events: none;
     }
 
     .poster-active.GPSolar {
@@ -739,6 +740,28 @@
       pointer-events: all;
       transform: rotate(-9deg);
     }
+
+    /* ============================================================ */
+    /* HIT ZONE for poster overall
+/* ============================================================ */
+    .GPSolar-hitzone {
+      position: absolute;
+      top: 24%;
+      left: 17%;
+      width: 620px;
+      height: 1680px;
+      rotate: -7deg;
+      z-index: 200;
+      background: none;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    /* hide hitzone when poster is active — it's only needed for opening */
+    .poster-active.GPSolar .GPSolar-hitzone {
+      pointer-events: none;
+      display: none;
+    }
   </style>
 
   <!-- ============================================================ -->
@@ -948,4 +971,8 @@
   <!-- CLICK ZONE -->
   <!-- ============================================================ -->
   <div class="GPSolar-clickzone"></div>
+  <!-- ============================================================ -->
+  <!-- HIT ZONE — clickable area tracing the bag shape -->
+  <!-- ============================================================ -->
+  <div class="GPSolar-hitzone"></div>
 </div>

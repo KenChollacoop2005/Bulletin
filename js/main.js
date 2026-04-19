@@ -250,6 +250,11 @@ function initPosterInteractions() {
   posters.forEach((poster) => {
     poster.addEventListener("click", function (e) {
       if (!isZoomedIn) return;
+      if (
+        poster.classList.contains("GPSolar") &&
+        !e.target.closest(".GPSolar-hitzone")
+      )
+        return; // GPSolar only activates from hitzone
       if (activePoster && activePoster !== poster) closeActivePoster();
       if (!activePoster) {
         activePoster = poster;
