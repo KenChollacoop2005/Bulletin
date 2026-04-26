@@ -6,30 +6,16 @@
     <title>K.C. Bulletin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/main.css" />
-    <!-- Favicon / App Icons -->
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="favicon/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="favicon/favicon-16x16.png"
-    />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" />
     <link rel="icon" href="favicon/favicon.ico" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="favicon/apple-touch-icon.png"
-    />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
     <link rel="manifest" href="favicon/site.webmanifest" />
 
     <style>
       /* ============================================================
-         LOADING SCREEN
+         LOADING / RESUME OVERLAY
+         One fixed overlay, two states: loading-state and resume-state
          position: fixed is critical — without it the div pushes
          layout and shifts the corkboard down
       ============================================================ */
@@ -39,24 +25,35 @@
         background: #000;
         z-index: 9999;
         display: flex;
+        flex-direction: column;
+        transition: opacity 0.6s ease;
+      }
+
+      /* ============================================================
+         LOADING STATE
+      ============================================================ */
+      #loading-state {
+        display: flex;
         align-items: center;
         justify-content: center;
-        gap: 120px; /* was 80px × 1.5 */
-        padding: 90px; /* was 60px × 1.5 */
+        gap: 120px;
+        padding: 90px;
         box-sizing: border-box;
+        width: 100%;
+        height: 100%;
       }
 
       #loading-left,
       #loading-right {
         flex: 1;
-        max-width: 420px; /* was 280px × 1.5 */
+        max-width: 420px;
       }
 
       #loading-center {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 36px; /* was 24px × 1.5 */
+        gap: 36px;
         flex-shrink: 0;
       }
 
@@ -71,8 +68,8 @@
       }
 
       #loading-bar-track {
-        width: 270px; /* was 180px × 1.5 */
-        height: 6px; /* was 4px × 1.5 */
+        width: 270px;
+        height: 6px;
         margin-top: -120px;
         margin-bottom: 120px;
         background: #222;
@@ -89,7 +86,7 @@
       }
 
       #loading-continue {
-        font-size: 16px; /* was ~11px × 1.5 */
+        font-size: 16px;
         letter-spacing: 0.18em;
         color: #555;
         text-transform: uppercase;
@@ -98,18 +95,17 @@
         user-select: none;
       }
 
-      /* ── Left column (professional / cold) ── */
       #loading-left .loading-label,
       #loading-right .loading-label {
-        font-size: 13px; /* was 9px × 1.5 */
+        font-size: 13px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
         color: #aaa;
-        margin: 0 0 21px 0; /* was 14px × 1.5 */
+        margin: 0 0 21px 0;
       }
 
       #loading-left .loading-body {
-        font-size: 19px; /* was 13px × 1.5 */
+        font-size: 19px;
         line-height: 1.75;
         color: #aaa;
         margin: 0;
@@ -117,17 +113,17 @@
 
       .loading-resume-btn {
         display: inline-block;
-        margin-top: 33px; /* was 22px × 1.5 */
-        font-size: 16px; /* was 11px × 1.5 */
+        margin-top: 33px;
+        font-size: 16px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #444;
         text-decoration: none;
         border: 1px solid #2a2a2a;
-        padding: 13px 27px; /* was 9px 18px × 1.5 */
-        transition:
-          color 0.2s ease,
-          border-color 0.2s ease;
+        padding: 13px 27px;
+        transition: color 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+        background: transparent;
       }
 
       .loading-resume-btn:hover {
@@ -135,52 +131,198 @@
         border-color: #555;
       }
 
-      /* ── Right column (warm / personal) ── */
       #loading-right .loading-body {
-        font-size: 19px; /* was 13px × 1.5 */
+        font-size: 19px;
         line-height: 1.75;
         color: #aaa;
         margin: 0;
       }
+
+      /* ============================================================
+         RESUME STATE — hidden by default, instant cut in
+      ============================================================ */
+      #resume-state {
+        display: none;           /* toggled to flex when active */
+        width: 100%;
+        height: 100%;
+      }
+
+      #resume-left {
+        width: 50%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 60px;
+      }
+
+      #resume-right {
+        width: 50%;
+        height: 100vh;
+        padding: 40px 40px 40px 0;
+      }
+
+      #left-inner {
+        width: 100%;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+      }
+
+      .resume-label {
+        font-size: 13px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #444;
+      }
+
+      .resume-body {
+        font-size: 19px;
+        line-height: 1.85;
+        color: #aaa;
+      }
+
+      .resume-body p + p {
+        margin-top: 24px;
+      }
+
+      .resume-btn {
+        display: inline-block;
+        font-size: 16px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: 1px solid #2a2a2a;
+        padding: 13px 27px;
+        transition: color 0.2s ease, border-color 0.2s ease;
+        cursor: pointer;
+        background: transparent;
+        width: fit-content;
+      }
+
+      #btn-download {
+        color: #aaa;
+      }
+
+      #btn-download:hover {
+        color: #fff;
+        border-color: #666;
+      }
+
+      #btn-return {
+        color: #444;             /* muted until PDF is loaded */
+        pointer-events: none;    /* disabled until PDF is ready */
+      }
+
+      #btn-return.ready {
+        color: #444;
+        pointer-events: all;
+      }
+
+      #btn-return.ready:hover {
+        color: #ccc;
+        border-color: #555;
+      }
+
+      #btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      #resume-embed {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+      }
     </style>
   </head>
   <body>
+
     <!-- ============================================================
-         LOADING SCREEN
-         JS will set display:none on this once loading is complete
-         and the user clicks through
+         OVERLAY — loading state and resume state live here
     ============================================================ -->
     <div id="loading-screen">
-      <!-- Left: professional / resume off-ramp -->
-      <div id="loading-left">
-        <p class="loading-label">Before you enter</p>
-        <p class="loading-body">
-          This portfolio is a creative rendition of who I am — built to be
-          explored, not scanned. It is not a resume, and it does not read like
-          one.
-        </p>
-        <a href="#" class="loading-resume-btn">View resume instead →</a>
+
+      <!-- STATE 1: Loading -->
+      <div id="loading-state">
+
+        <div id="loading-left">
+          <p class="loading-label">Before you enter</p>
+          <p class="loading-body">
+            This portfolio is a creative rendition of who I am — built to be
+            explored, not scanned. It is not a resume, and it does not read like
+            one.
+          </p>
+          <button class="loading-resume-btn" id="btn-view-resume">View resume instead</button>
+        </div>
+
+        <div id="loading-center">
+          <div id="loading-graphic">
+            <img src="Assets/NonPosters/LoadingSplash.png" alt="K.C." />
+          </div>
+          <div id="loading-bar-track">
+            <div id="loading-bar-fill"></div>
+          </div>
+          <p id="loading-continue">Click anywhere to continue</p>
+        </div>
+
+        <div id="loading-right">
+          <p class="loading-label">Welcome</p>
+          <p class="loading-body">
+            But if you want to know me on a personal level — the projects, the
+            timelines, the story — this is the place. This is me, in my entirety.
+          </p>
+        </div>
+
       </div>
 
-      <!-- Center: graphic + progress -->
-      <div id="loading-center">
-        <div id="loading-graphic">
-          <img src="Assets/NonPosters/LoadingSplash.png" alt="K.C." />
+      <!-- STATE 2: Resume -->
+      <div id="resume-state">
+
+        <div id="resume-left">
+          <div id="left-inner">
+            <p class="resume-label">About me</p>
+            <div class="resume-body">
+              <p>
+                My name is Ken. I have used a cane my entire life, and for as
+                long as I can remember, I have walked into rooms and watched
+                expectations quietly shift.
+              </p>
+              <p>
+                People are always a little surprised when the disabled kid is
+                the one at the front of the room. That never sat right with me.
+                Not because I want you to stop being surprised, but because I
+                was never sure whether the surprise was for me, or in spite of
+                me.
+              </p>
+            </div>
+            <div id="btn-group">
+              
+                id="btn-download"
+                class="resume-btn"
+                href="ChollacoopKenResume.pdf"
+                download="ChollacoopKen_Resume.pdf"
+              >Download PDF</a>
+              <button id="btn-return" class="resume-btn">Return to portfolio</button>
+            </div>
+          </div>
         </div>
-        <div id="loading-bar-track">
-          <div id="loading-bar-fill"></div>
+
+        <div id="resume-right">
+          <embed
+            id="resume-embed"
+            src=""
+            type="application/pdf"
+          />
         </div>
-        <p id="loading-continue">Click anywhere to continue</p>
+
       </div>
 
-      <!-- Right: warm / personal invitation -->
-      <div id="loading-right">
-        <p class="loading-label">Welcome</p>
-        <p class="loading-body">
-          But if you want to know me on a personal level — the projects, the
-          timelines, the story — this is the place. This is me, in my entirety.
-        </p>
-      </div>
     </div>
 
     <!-- ============================================================
@@ -188,15 +330,65 @@
     ============================================================ -->
     <div class="scene-container">
       <div class="corkboard">
-        <!-- Posters will be dynamically loaded here -->
         <div class="overlay-layer" aria-hidden="true"></div>
       </div>
     </div>
 
+    <script src="js/physics.js"></script>
     <script src="js/SoundEffects.js"></script>
     <script src="js/main.js"></script>
     <script src="js/SaturnCD.js"></script>
     <script src="js/SafeSlip.js"></script>
     <script src="js/GPSolar.js"></script>
+
+    <script>
+      // ============================================================
+      // OVERLAY STATE MACHINE
+      // ============================================================
+      const overlay       = document.getElementById("loading-screen");
+      const loadingState  = document.getElementById("loading-state");
+      const resumeState   = document.getElementById("resume-state");
+      const btnViewResume = document.getElementById("btn-view-resume");
+      const btnReturn     = document.getElementById("btn-return");
+      const resumeEmbed   = document.getElementById("resume-embed");
+
+      // -- Switch to resume state (instant cut) --
+      btnViewResume.addEventListener("click", (e) => {
+        e.stopPropagation();               // don't trigger "click anywhere"
+
+        // Lazy-load the PDF only when the user actually asks for it
+        if (!resumeEmbed.src || resumeEmbed.src === window.location.href) {
+          resumeEmbed.src = "ChollacoopKenResume.pdf";
+        }
+
+        loadingState.style.display = "none";
+        resumeState.style.display  = "flex";
+
+        // Enable return button once PDF fires its load event
+        resumeEmbed.addEventListener("load", () => {
+          btnReturn.classList.add("ready");
+        }, { once: true });
+
+        // Fallback — enable after 4s in case load event doesn't fire
+        // (some browsers don't fire load on embed)
+        setTimeout(() => {
+          btnReturn.classList.add("ready");
+        }, 4000);
+      });
+
+      // -- Return to portfolio (fade out overlay) --
+      function dismissOverlay() {
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+          overlay.style.display = "none";
+        }, 620);
+      }
+
+      btnReturn.addEventListener("click", () => {
+        if (!btnReturn.classList.contains("ready")) return;
+        dismissOverlay();
+      });
+    </script>
+
   </body>
 </html>

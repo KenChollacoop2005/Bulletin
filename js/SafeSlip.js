@@ -306,3 +306,15 @@ function triggerInfoBloom(poster, bloomElements) {
     }, delayE);
   }, 50);
 }
+
+// Register SafeSlip for pendulum physics
+// SafeSlip is a plastic lanyard card pinned at top center —
+// light, small, reacts easily to nearby movement
+window.registerPosterPhysics({
+  selector: ".poster.SafeSlip",
+  transformOrigin: "center left",
+  gravity: 0.008, // low — light plastic, slow return
+  damping: 0.92, // high — swings freely, takes a while to settle
+  swipeScale: -0.015, // fairly reactive — it's small and light
+  maxAngle: 12, // degrees — lanyard card, not a huge swing
+});
