@@ -267,7 +267,6 @@
 
       // Copy important rendering properties
       clone.style.filter = computedStyle.filter;
-      clone.style.imageRendering = "crisp-edges";
       clone.style.objectFit = "contain";
 
       // Add data attribute to track which module this is
@@ -619,7 +618,6 @@
           assembled.style.width = "1310px"; // Adjust to match your assets
           assembled.style.height = "600";
           assembled.style.zIndex = "101";
-          assembled.style.imageRendering = "crisp-edges";
           assembled.style.objectFit = "contain";
           assembled.style.filter = "none"; // No glow
 
@@ -694,7 +692,6 @@
         nametag.style.position = "fixed";
         nametag.style.width = `${nametagWidth}px`;
         nametag.style.height = `${nametagHeight}px`;
-        nametag.style.imageRendering = "crisp-edges";
         nametag.style.objectFit = "contain";
 
         // Center horizontally relative to assembled image
@@ -722,7 +719,6 @@
         heading.style.position = "fixed";
         heading.style.width = `${headingWidth}px`;
         heading.style.height = `${headingHeight}px`;
-        heading.style.imageRendering = "crisp-edges";
         heading.style.objectFit = "contain";
 
         // Start position: to the right of nametag, off-screen above
@@ -749,7 +745,6 @@
         releaseNotes.style.position = "fixed";
         releaseNotes.style.width = `${releaseNotesWidth}px`;
         releaseNotes.style.height = `${releaseNotesHeight}px`;
-        releaseNotes.style.imageRendering = "crisp-edges";
         releaseNotes.style.objectFit = "contain";
         releaseNotes.style.zIndex = "102";
 
@@ -776,7 +771,6 @@
         polaroid.style.position = "fixed";
         polaroid.style.width = `${polaroidWidth}px`;
         polaroid.style.height = `${polaroidHeight}px`;
-        polaroid.style.imageRendering = "crisp-edges";
         polaroid.style.objectFit = "contain";
         polaroid.style.zIndex = "103"; // Above release notes (102)
 
@@ -804,7 +798,6 @@
         cuttingBoard.style.position = "fixed";
         cuttingBoard.style.width = `${cuttingBoardWidth}px`;
         cuttingBoard.style.height = `${cuttingBoardHeight}px`;
-        cuttingBoard.style.imageRendering = "crisp-edges";
         cuttingBoard.style.objectFit = "contain";
         cuttingBoard.style.zIndex = "101";
 
@@ -865,7 +858,6 @@
         mouthNotecard.style.position = "fixed";
         mouthNotecard.style.width = `${notecardWidth}px`;
         mouthNotecard.style.height = `${notecardHeight}px`;
-        mouthNotecard.style.imageRendering = "crisp-edges";
         mouthNotecard.style.objectFit = "contain";
         mouthNotecard.style.zIndex = "101";
 
@@ -884,7 +876,6 @@
         bodyNotecard.style.position = "fixed";
         bodyNotecard.style.width = `${notecardWidth}px`;
         bodyNotecard.style.height = `${notecardHeight}px`;
-        bodyNotecard.style.imageRendering = "crisp-edges";
         bodyNotecard.style.objectFit = "contain";
         bodyNotecard.style.zIndex = "103";
 
@@ -903,7 +894,6 @@
         bellNotecard.style.position = "fixed";
         bellNotecard.style.width = `${notecardWidth}px`;
         bellNotecard.style.height = `${notecardHeight}px`;
-        bellNotecard.style.imageRendering = "crisp-edges";
         bellNotecard.style.objectFit = "contain";
         bellNotecard.style.zIndex = "102";
 

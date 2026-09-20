@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Assets/SafeSlip/SafeSlipDisplay.png",
       "Assets/SafeSlip/SafeSlipTop.png",
       "Assets/SafeSlip/SafeSlipTop.gif",
+      "Assets/SafeSlip/SafeSlipTopStill.png",
     ];
 
     preloadSrcs.forEach((src) => {
@@ -27,26 +28,39 @@ document.addEventListener("DOMContentLoaded", () => {
     let bloomTimeout = null;
     const speed = 350;
 
+    // Every bloom element now rests at a static top/left/right (set once,
+    // never animated) and slides via a translate() offset in "transform"
+    // instead. dismissBloom reads that static value straight back off the
+    // element's own style + its stored dataset.size/side/restRotation to
+    // compute the same off-screen exit distance the old code used, just
+    // expressed as a transform delta instead of a new top/left/right target.
     function dismissBloom() {
       if (bloomElements.length === 0) return;
 
       bloomElements.forEach((el) => {
         const side = el.dataset.side;
         const offscreenSize = parseFloat(el.dataset.size) + 200;
+        const restRotation = el.dataset.restRotation || "0deg";
+
+        let dx = 0;
+        let dy = 0;
 
         if (side === "right") {
-          el.style.transition = `right ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-          el.style.right = `-${offscreenSize}px`;
+          const restRight = parseFloat(el.style.right);
+          dx = restRight + offscreenSize; // push further right, off-screen
         } else if (side === "left") {
-          el.style.transition = `left ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-          el.style.left = `-${offscreenSize}px`;
+          const restLeft = parseFloat(el.style.left);
+          dx = -offscreenSize - restLeft; // push further left, off-screen
         } else if (side === "top") {
-          el.style.transition = `top ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-          el.style.top = `-${offscreenSize}px`;
+          const restTop = parseFloat(el.style.top);
+          dy = -offscreenSize - restTop; // push further up, off-screen
         } else if (side === "bottom") {
-          el.style.transition = `top ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-          el.style.top = `${window.innerHeight + 200}px`;
+          const restTop = parseFloat(el.style.top);
+          dy = window.innerHeight + 200 - restTop; // push down, off-screen
         }
+
+        el.style.transition = `transform ${speed}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${restRotation})`;
         soundEffects.play("SSclose");
       });
 
@@ -58,6 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const activeObserver = new MutationObserver(() => {
       if (poster.classList.contains("poster-active")) {
+        // Preload the real GIF now, in the background, so it's already in
+        // cache by the time notecardD's slide-in finishes and swaps over
+        // to it — well before the 1800ms + slide delay below.
+        const gifPreload = new Image();
+        gifPreload.src = "Assets/SafeSlip/SafeSlipTop.gif";
+
         bloomTimeout = setTimeout(() => {
           triggerInfoBloom(poster, bloomElements);
         }, 1800);
@@ -85,9 +105,19 @@ function triggerInfoBloom(poster, bloomElements) {
   const posterRect = poster.getBoundingClientRect();
   const padding = 20;
   const gap = 60;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
 
   // ============================================================
   // BOARD (slides in from left)
+  // Every element below follows the same pattern: compute the exact same
+  // final resting value the old code used as its *animated target*, set it
+  // as a static (never-transitioned) top/left/right, then express the old
+  // off-screen starting value as a translate() offset from that static
+  // position. The slide-in becomes "transform: translate(offset) rotate(a)"
+  // animating to "translate(0, 0) rotate(b)" — same visual motion, same
+  // resting spot, but driven by a compositor-only property instead of one
+  // that forces layout on every frame.
   // ============================================================
   const boardWidth = 736;
   const boardHeight = 1002;
@@ -97,16 +127,25 @@ function triggerInfoBloom(poster, bloomElements) {
   board.style.position = "fixed";
   board.style.width = `${boardWidth}px`;
   board.style.height = `${boardHeight}px`;
-  board.style.imageRendering = "crisp-edges";
   board.style.objectFit = "contain";
   board.style.zIndex = "102";
   board.style.top = `${posterRect.top + posterRect.height / 2 - boardHeight / 2 - 100}px`;
-  board.style.left = `-${boardWidth + 140}px`;
+
+  let boardRestLeft = posterRect.left - gap - boardWidth;
+  boardRestLeft = Math.max(padding, boardRestLeft);
+  boardRestLeft -= 20;
+  board.style.left = `${boardRestLeft}px`;
+
+  const boardStartLeft = -(boardWidth + 140);
+  const boardStartX = boardStartLeft - boardRestLeft;
+  const boardRestRotate = -2; // deg — final rotation, unchanged from before
+
+  board.style.transform = `translate(${boardStartX}px, 0px) rotate(2deg)`;
   board.style.transition =
-    "left 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  board.style.transform = "rotate(2deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   board.dataset.side = "left";
   board.dataset.size = boardWidth;
+  board.dataset.restRotation = `${boardRestRotate}deg`;
   document.body.appendChild(board);
   bloomElements.push(board);
 
@@ -126,16 +165,25 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardA.style.position = "fixed";
   notecardA.style.width = `${notecardWidth}px`;
   notecardA.style.height = `${notecardHeight}px`;
-  notecardA.style.imageRendering = "crisp-edges";
   notecardA.style.objectFit = "contain";
   notecardA.style.zIndex = "101";
   notecardA.style.top = `${posterRect.top + posterRect.height / 2 - notecardHeight / 2 - 285}px`;
-  notecardA.style.right = `-${notecardWidth + 200}px`;
+
+  const notecardARightPos = posterRect.right + gap;
+  const notecardARestRight =
+    viewportWidth - notecardARightPos - notecardWidth + 300;
+  notecardA.style.right = `${notecardARestRight}px`;
+
+  const notecardAStartRight = -(notecardWidth + 200);
+  const notecardAStartX = notecardARestRight - notecardAStartRight;
+  const notecardARestRotate = 5; // deg
+
+  notecardA.style.transform = `translate(${notecardAStartX}px, 0px) rotate(8deg)`;
   notecardA.style.transition =
-    "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  notecardA.style.transform = "rotate(8deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   notecardA.dataset.side = "right";
   notecardA.dataset.size = notecardWidth;
+  notecardA.dataset.restRotation = `${notecardARestRotate}deg`;
   document.body.appendChild(notecardA);
   bloomElements.push(notecardA);
 
@@ -149,16 +197,25 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardB.style.position = "fixed";
   notecardB.style.width = `${notecardWidth2}px`;
   notecardB.style.height = `${notecardHeight2}px`;
-  notecardB.style.imageRendering = "crisp-edges";
   notecardB.style.objectFit = "contain";
   notecardB.style.zIndex = "102";
   notecardB.style.top = `${posterRect.top + posterRect.height / 2 - notecardHeight2 / 2 + 300}px`;
-  notecardB.style.right = `-${notecardWidth2 + 200}px`;
+
+  const notecardBRightPos = posterRect.right + gap;
+  const notecardBRestRight =
+    viewportWidth - notecardBRightPos - notecardWidth2 + 360;
+  notecardB.style.right = `${notecardBRestRight}px`;
+
+  const notecardBStartRight = -(notecardWidth2 + 200);
+  const notecardBStartX = notecardBRestRight - notecardBStartRight;
+  const notecardBRestRotate = -8; // deg
+
+  notecardB.style.transform = `translate(${notecardBStartX}px, 0px) rotate(-4deg)`;
   notecardB.style.transition =
-    "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  notecardB.style.transform = "rotate(-4deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   notecardB.dataset.side = "right";
   notecardB.dataset.size = notecardWidth2;
+  notecardB.dataset.restRotation = `${notecardBRestRotate}deg`;
   document.body.appendChild(notecardB);
   bloomElements.push(notecardB);
 
@@ -172,16 +229,25 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardC.style.position = "fixed";
   notecardC.style.width = `${notecardWidth3}px`;
   notecardC.style.height = `${notecardHeight3}px`;
-  notecardC.style.imageRendering = "crisp-edges";
   notecardC.style.objectFit = "contain";
   notecardC.style.zIndex = "103";
   notecardC.style.top = `${posterRect.top + posterRect.height / 2 - notecardHeight3 / 2 + 243}px`;
-  notecardC.style.right = `-${notecardWidth3 + 200}px`;
+
+  const notecardCRightPos = posterRect.right + gap;
+  const notecardCRestRight =
+    viewportWidth - notecardCRightPos - notecardWidth3 - 256;
+  notecardC.style.right = `${notecardCRestRight}px`;
+
+  const notecardCStartRight = -(notecardWidth3 + 200);
+  const notecardCStartX = notecardCRestRight - notecardCStartRight;
+  const notecardCRestRotate = 19; // deg
+
+  notecardC.style.transform = `translate(${notecardCStartX}px, 0px) rotate(3deg)`;
   notecardC.style.transition =
-    "right 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  notecardC.style.transform = "rotate(3deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   notecardC.dataset.side = "right";
   notecardC.dataset.size = notecardWidth3;
+  notecardC.dataset.restRotation = `${notecardCRestRotate}deg`;
   document.body.appendChild(notecardC);
   bloomElements.push(notecardC);
 
@@ -197,16 +263,31 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardD.style.height = `${notecardHeight4}px`;
   notecardD.style.zIndex = "101";
   notecardD.style.left = `${posterRect.left + posterRect.width / 2 - notecardWidth4 / 2 - 170}px`;
-  notecardD.style.top = `-${notecardHeight4}px`;
+
+  const notecardDRestTop = padding - 70;
+  notecardD.style.top = `${notecardDRestTop}px`;
+
+  const notecardDStartTop = -notecardHeight4;
+  const notecardDStartY = notecardDStartTop - notecardDRestTop;
+  const notecardDRestRotate = 0; // deg
+
+  notecardD.style.transform = `translate(0px, ${notecardDStartY}px) rotate(-5deg)`;
   notecardD.style.transition =
-    "top 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  notecardD.style.transform = "rotate(-5deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   notecardD.dataset.side = "top";
   notecardD.dataset.size = notecardHeight4;
+  notecardD.dataset.restRotation = `${notecardDRestRotate}deg`;
 
-  // GIF sits behind the PNG cutout
+  // GIF sits behind the PNG cutout. Starts on a static first frame
+  // (SafeSlipTopStill.png, matched pixel-for-pixel to the GIF) and swaps to
+  // the real animated GIF only once notecardD's own slide-in transform
+  // finishes — so the GIF isn't decoding/animating while it (and the rest
+  // of the bloom) is still sliding. { once: true } so the dismiss
+  // transition's transitionend doesn't re-trigger a pointless re-swap.
+  // Width/height are identical before and after the swap (both fixed in px
+  // below), so this causes no layout shift.
   const notecardDGif = document.createElement("img");
-  notecardDGif.src = "Assets/SafeSlip/SafeSlipTop.gif";
+  notecardDGif.src = "Assets/SafeSlip/SafeSlipTopStill.png";
   notecardDGif.style.position = "absolute";
   notecardDGif.style.width = `${2000 * 0.16}px`; // scale factor
   notecardDGif.style.height = `${2500 * 0.16}px`; // scale factor
@@ -217,6 +298,15 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardDGif.style.zIndex = "1";
   notecardD.appendChild(notecardDGif);
 
+  notecardD.addEventListener(
+    "transitionend",
+    (e) => {
+      if (e.propertyName !== "transform") return;
+      notecardDGif.src = "Assets/SafeSlip/SafeSlipTop.gif";
+    },
+    { once: true },
+  );
+
   // PNG cutout sits on top of the GIF
   const notecardDPng = document.createElement("img");
   notecardDPng.src = "Assets/SafeSlip/SafeSlipTop.png";
@@ -226,7 +316,6 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardDPng.style.top = "0";
   notecardDPng.style.left = "0";
   notecardDPng.style.objectFit = "contain";
-  notecardDPng.style.imageRendering = "crisp-edges";
   notecardDPng.style.zIndex = "2";
   notecardD.appendChild(notecardDPng);
 
@@ -244,27 +333,34 @@ function triggerInfoBloom(poster, bloomElements) {
   notecardE.style.position = "fixed";
   notecardE.style.width = `${notecardWidth5}px`;
   notecardE.style.height = `${notecardHeight5}px`;
-  notecardE.style.imageRendering = "crisp-edges";
   notecardE.style.objectFit = "contain";
   notecardE.style.zIndex = "101";
   notecardE.style.left = `${posterRect.left + posterRect.width / 2 - notecardWidth5 / 2 - 200}px`;
-  notecardE.style.top = `${window.innerHeight}px`;
+
+  const notecardERestTop = viewportHeight - notecardHeight5 - padding + 120;
+  notecardE.style.top = `${notecardERestTop}px`;
+
+  const notecardEStartTop = viewportHeight;
+  const notecardEStartY = notecardEStartTop - notecardERestTop;
+  const notecardERestRotate = 0; // deg
+
+  notecardE.style.transform = `translate(0px, ${notecardEStartY}px) rotate(4deg)`;
   notecardE.style.transition =
-    "top 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  notecardE.style.transform = "rotate(4deg)";
+    "transform 1000ms cubic-bezier(0.25, 0.46, 0.45, 0.94)";
   notecardE.dataset.side = "bottom";
   notecardE.dataset.size = notecardHeight5;
+  notecardE.dataset.restRotation = `${notecardERestRotate}deg`;
   document.body.appendChild(notecardE);
   bloomElements.push(notecardE);
 
   // ============================================================
   // SLIDE EVERYTHING IN
+  // Resting positions are already set above — this just animates each
+  // element's transform back to translate(0, 0) at its own final rotation,
+  // landing exactly on the static top/left/right already in place.
   // ============================================================
   setTimeout(() => {
-    let boardLeft = posterRect.left - gap - boardWidth;
-    boardLeft = Math.max(padding, boardLeft);
-    board.style.left = `${boardLeft - 20}px`;
-    board.style.transform = "rotate(-2deg)";
+    board.style.transform = `translate(0px, 0px) rotate(${boardRestRotate}deg)`;
 
     const delayA = 100 + Math.random() * 200;
     const delayB = 100 + Math.random() * 200;
@@ -273,35 +369,27 @@ function triggerInfoBloom(poster, bloomElements) {
     const delayE = 100 + Math.random() * 200;
 
     setTimeout(() => {
-      let rightPos = posterRect.right + gap;
-      notecardA.style.right = `${window.innerWidth - rightPos - notecardWidth + 300}px`;
-      notecardA.style.transform = "rotate(5deg)";
+      notecardA.style.transform = `translate(0px, 0px) rotate(${notecardARestRotate}deg)`;
       soundEffects.play("SSslide1");
     }, delayA);
 
     setTimeout(() => {
-      let rightPos = posterRect.right + gap;
-      notecardB.style.right = `${window.innerWidth - rightPos - notecardWidth2 + 360}px`;
-      notecardB.style.transform = "rotate(-8deg)";
+      notecardB.style.transform = `translate(0px, 0px) rotate(${notecardBRestRotate}deg)`;
       soundEffects.play("SSslide2");
     }, delayB);
 
     setTimeout(() => {
-      let rightPos = posterRect.right + gap;
-      notecardC.style.right = `${window.innerWidth - rightPos - notecardWidth3 - 256}px`;
-      notecardC.style.transform = "rotate(19deg)";
+      notecardC.style.transform = `translate(0px, 0px) rotate(${notecardCRestRotate}deg)`;
       soundEffects.play("SSslide3");
     }, delayC);
 
     setTimeout(() => {
-      notecardD.style.top = `${padding - 70}px`;
-      notecardD.style.transform = "rotate(0deg)";
+      notecardD.style.transform = `translate(0px, 0px) rotate(${notecardDRestRotate}deg)`;
       soundEffects.play("SSslide4");
     }, delayD);
 
     setTimeout(() => {
-      notecardE.style.top = `${window.innerHeight - notecardHeight5 - padding + 120}px`;
-      notecardE.style.transform = "rotate(0deg)";
+      notecardE.style.transform = `translate(0px, 0px) rotate(${notecardERestRotate}deg)`;
       soundEffects.play("SSslide5");
     }, delayE);
   }, 50);

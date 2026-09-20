@@ -12,6 +12,7 @@ corkboard.style.transform = "rotateX(30deg) rotateY(-30deg)";
 
 // List all poster HTML files
 const posterFiles = [
+  "Posters/DMS4all.html",
   "Posters/Pamphlet-SawasdeeDC.html",
   "Posters/Poster2.html",
   "Posters/Poster3.html",
@@ -20,9 +21,15 @@ const posterFiles = [
   "Posters/SafeSlip.html",
   "Posters/CD-Saturn.html",
   "Posters/GPSolar.html",
+  "Posters/SlantFold.html",
+  "Posters/FloppyCase.html",
 ];
 // Overlay HTML files (like posters, but rendered on top of corkboard)
-const overlayFiles = ["Overlays/SatCD-Tape.html", "Overlays/SafeSlipPin.html"];
+const overlayFiles = [
+  "Overlays/SatCD-Tape.html",
+  "Overlays/SafeSlipPin.html",
+  "Overlays/DMSPin.html",
+];
 
 // ============================================================
 // HEAVY ASSETS — images to decode during the loading screen
@@ -73,6 +80,14 @@ const heavyAssets = [
   // NameCard
   "Assets/NameCard/Namecard.jpg",
   "Assets/NameCard/NamecardBack.jpg",
+  // FloppyCase
+  "Assets/FloppyDiskCodeBase/FloppyCaseBase.png",
+  "Assets/FloppyDiskCodeBase/FloppyCaseLid.png",
+  "Assets/FloppyDiskCodeBase/FloppyCaseFront.png",
+  // FloppyCase's CRT sub-element
+  "Assets/FloppyDiskCodeBase/FloppyCrtBack.png",
+  "Assets/FloppyDiskCodeBase/FloppyCrtFoot.png",
+  "Assets/FloppyDiskCodeBase/FloppyCrtFrame.png",
 ];
 
 // ============================================================
@@ -180,6 +195,12 @@ function initPosterInteractions() {
       const li = poster.querySelector(".SDCLanyard-inner");
       if (li) li.classList.remove("flipped");
     }
+    if (poster.classList.contains("SlantFold")) {
+      poster.classList.remove("open");
+    }
+    if (poster.classList.contains("DMS4all")) {
+      poster.classList.remove("open");
+    }
     poster.classList.remove("poster-active");
     poster.style.left = poster.dataset.originalLeft;
     poster.style.top = poster.dataset.originalTop;
@@ -201,6 +222,9 @@ function initPosterInteractions() {
       }, 100);
     }
     if (poster.classList.contains("pamphlet")) {
+      soundEffects.play("SDCPclose");
+    }
+    if (poster.classList.contains("DMS4all")) {
       soundEffects.play("SDCPclose");
     }
 
@@ -255,6 +279,11 @@ function initPosterInteractions() {
         !e.target.closest(".GPSolar-hitzone")
       )
         return; // GPSolar only activates from hitzone
+      if (
+        poster.classList.contains("DMS4all") &&
+        !e.target.closest(".DMS4all-hitzone-folded, .DMS4all-hitzone-unfolded")
+      )
+        return; // DMS4all only activates from its folded/unfolded hitzone
       if (activePoster && activePoster !== poster) closeActivePoster();
       if (!activePoster) {
         activePoster = poster;
@@ -264,6 +293,12 @@ function initPosterInteractions() {
         poster.classList.add("poster-active");
         corkboard.classList.add("has-active");
         if (poster.classList.contains("pamphlet")) {
+          setTimeout(() => poster.classList.add("open"), 550);
+        }
+        if (poster.classList.contains("SlantFold")) {
+          setTimeout(() => poster.classList.add("open"), 550);
+        }
+        if (poster.classList.contains("DMS4all")) {
           setTimeout(() => poster.classList.add("open"), 550);
         }
 
@@ -304,6 +339,21 @@ function initPosterInteractions() {
           setTimeout(() => {
             soundEffects.play("SDCticket");
           }, 1100);
+        }
+        if (poster.classList.contains("DMS4all")) {
+          // DMS sound timing — ms after the click. The card starts sliding
+          // immediately; it unfolds at 550ms (see the "open" setTimeout above).
+          const DMS_SLIDE_SOUND_DELAY = 0;
+          const DMS_OPEN_SOUND_DELAY = 350;
+          // Extra adjustable delay (ms) added on top of each one above
+          const DMS_SLIDE_SOUND_EXTRA_DELAY = 200;
+          const DMS_OPEN_SOUND_EXTRA_DELAY = 0;
+          setTimeout(() => {
+            soundEffects.play("SSslide3");
+          }, DMS_SLIDE_SOUND_DELAY + DMS_SLIDE_SOUND_EXTRA_DELAY);
+          setTimeout(() => {
+            soundEffects.play("DMSopen");
+          }, DMS_OPEN_SOUND_DELAY + DMS_OPEN_SOUND_EXTRA_DELAY);
         }
       }
     });
@@ -424,6 +474,9 @@ Promise.all([
       window._saturnMOInit(saturnPoster);
     const gpsPoster = document.querySelector(".poster.GPSolar");
     if (gpsPoster && window._gpsMOInit) window._gpsMOInit(gpsPoster);
+    const floppyCasePoster = document.querySelector(".poster.FloppyCase");
+    if (floppyCasePoster && window._floppyCaseMOInit)
+      window._floppyCaseMOInit(floppyCasePoster);
   }),
   decodeAssets(),
 ]);

@@ -112,6 +112,7 @@ soundEffects.loadSound("GPSclose", "sounds/CanvasTent.wav", 0.15);
 soundEffects.loadSound("GPSstack", "sounds/GPSstack.mp3", 0.5);
 soundEffects.loadSound("GPSclick", "sounds/NewClink.wav", 0.07);
 soundEffects.loadSound("GPSpaper", "sounds/GPSpaper.mp3", 0.2);
+soundEffects.loadSound("DMSopen", "sounds/DMSopen.mp3", 0.1); // loaded but not played anywhere yet
 
 // Make it available globally
 window.soundEffects = soundEffects;

@@ -1,0 +1,566 @@
+<title>Project Mosaic</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --ink:        #0c1a19;
+    --panel:      #12211f;
+    --panel-2:    #0f1c1b;
+    --line:       #244b46;
+    --line-soft:  #1a332f;
+    --text:       #e7efe9;
+    --text-dim:   #9fb6ad;
+    --text-faint: #6e8880;
+    --cyan:       #6bdcc9;
+    --cyan-dim:   #3a7d70;
+    --coral:      #f2a65a;
+    --coral-dim:  #b97a3d;
+    --shadow:     rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 42px 42px;
+    background-position: -1px -1px;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-inline: 24px;
+    padding-block: 56px 80px;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Fraunces', Georgia, serif;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--cyan); }
+
+  /* ---------- HERO ---------- */
+
+  .hero {
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--cyan-dim);
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-weight: 600;
+    font-optical-sizing: auto;
+    color: var(--text);
+  }
+
+  .hero .sub {
+    margin-top: 14px;
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: var(--text-dim);
+    max-width: 46ch;
+  }
+
+  .hero .byline {
+    margin-top: 22px;
+    font-size: 0.88rem;
+    color: var(--text-faint);
+  }
+
+  .stat-strip {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .stat-tile {
+    background: var(--panel);
+    padding: 18px 16px;
+  }
+
+  .stat-tile .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--coral);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-tile .label {
+    margin-top: 6px;
+    font-size: 0.76rem;
+    color: var(--text-faint);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- SECTIONS ---------- */
+
+  section.category {
+    margin-bottom: 60px;
+  }
+
+  .cat-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .cat-head h2 {
+    font-size: clamp(1.4rem, 3vw, 1.85rem);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .cat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+
+  .cat-intro {
+    color: var(--text-dim);
+    max-width: 68ch;
+    margin: 10px 0 26px;
+    font-size: 0.96rem;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 10px; height: 10px;
+    border-top: 1px solid var(--cyan-dim);
+    border-left: 1px solid var(--cyan-dim);
+  }
+
+  .card-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  .card h3 {
+    font-size: 1.12rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .card p {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .card .spec {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--coral-dim);
+    line-height: 1.5;
+  }
+
+  .card .spec b {
+    color: var(--coral);
+    font-weight: 600;
+  }
+
+  /* wide card variant for process notes */
+  .note-list {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .note-row {
+    background: var(--panel);
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .note-row .note-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--cyan);
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+
+  .note-row p {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+  }
+
+  .note-row strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  @media (max-width: 620px) {
+    .note-row { grid-template-columns: 1fr; gap: 4px; }
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  footer {
+    margin-top: 70px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  footer .mono { color: var(--text-faint); }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Selected technical work / portfolio reference</div>
+    <h1>Project Mosaic</h1>
+    <p class="sub">A solo software project used here as a vehicle for applied algorithms and system design: constructive procedural generation, deterministic RNG engineering, a fully precomputed simulation engine, and two real-time interactive systems, all built from primitives in Python.</p>
+    <p class="byline">Solo design + engineering, every system below. ~2.5 weeks of active iteration, built and hardened the way a production codebase would be — automated regression testing, a maintained decision log, formal change-safety protocol.</p>
+
+    <div class="stat-strip">
+      <div class="stat-tile">
+        <div class="num">~15,200</div>
+        <div class="label">lines of Python</div>
+      </div>
+      <div class="stat-tile">
+        <div class="num">10</div>
+        <div class="label">CSV-driven data tables</div>
+      </div>
+      <div class="stat-tile">
+        <div class="num">7</div>
+        <div class="label">headless automated test suites</div>
+      </div>
+      <div class="stat-tile">
+        <div class="num">68</div>
+        <div class="label">documented engineering rounds</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Procedural generation &amp; pathfinding</h2>
+      <div class="cat-num mono">01</div>
+    </div>
+    <p class="cat-intro">Runtime content generation implemented from first principles — connectivity-guaranteeing random walks, specialized shortest-path search, and graph reachability analysis, applied here to dungeon layout.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">board_gen.py</div>
+        <h3>Constructive random-walk generation with a provable connectivity invariant</h3>
+        <p>Rather than sampling wall/floor noise per-cell and hoping the result holds together, this generator builds connectivity as an invariant of the algorithm itself: every new cell is carved adjacent to an already-connected cell, so the region is guaranteed connected by construction — no flood-fill validation pass required, no retry loop needed to reject a broken layout. A directional-bias term (a 15% weighted step toward a target) keeps the walk convergent without collapsing into a straight line. Applied here to carve the game's dungeon floors.</p>
+        <div class="spec"><b>max_steps</b> = width × height × 40, with a guaranteed L-shaped fallback corridor if the walk never converges.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">board_gen.py</div>
+        <h3>0-1 BFS shortest-path search (deque-based Dijkstra specialization)</h3>
+        <p>Implemented a specialized graph-search algorithm for 0/1-weighted edges — pushing zero-cost transitions to the front of a deque and unit-cost transitions to the back — which recovers Dijkstra's correctness guarantee in linear time, without the O(log n) overhead a general priority-queue implementation would require. Used here to compute minimum-cost repairs when generated dungeon regions become disconnected.</p>
+        <div class="spec">Used to surgically reconnect any floor pocket orphaned by softlock-prevention widening, repeated to a fixed point.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">floor_gen.py</div>
+        <h3>Directed-graph modeling with a dedicated reachability/depth analysis pass</h3>
+        <p>Runtime content is generated by first building and validating a directed graph data structure, independent of any visual representation — nodes carry no inherent notion of distance from the root, since insertion order and traversal order are two different orderings entirely. A separate breadth-first search computes true graph-theoretic depth per node, which a content-placement policy then consumes as a hard constraint. Applied to dungeon layout, this guarantees a rule holds regardless of which of two branch paths gets taken.</p>
+        <div class="spec">Powers a hard rule: no dangerous enemy can spawn inside the first two rooms, on <b>either</b> branch path, regardless of which one a run takes.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">landmark_rooms.py</div>
+        <h3>Procedural silhouette generation via additive harmonic synthesis</h3>
+        <p>A closed-form irregular boundary is generated by summing multiple sinusoidal harmonics (independently randomized amplitude, frequency, and phase) around a base radius — the same additive-synthesis principle used to build complex waveforms from simple ones, applied here to geometry instead of audio. Produces a naturalistic, non-repeating silhouette from a handful of parameters rather than a hand-authored shape or expensive noise field.</p>
+        <div class="spec">radius(θ) = base_radius + Σ harmonic_i.amp · sin(harmonic_i.freq · θ + harmonic_i.phase)</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">landmark_rooms.py</div>
+        <h3>Parametric curve authoring to eliminate a systemic visual defect</h3>
+        <p>Diagnosed a recurring visual-quality complaint down to its root geometric cause — straight-line segments reading as artificial — and replaced the underlying primitive with quadratic Bézier curves bowed through a control point, the standard technique for authoring organic curvature in any 2D graphics pipeline. Applied to a set of hand-authored anatomical templates for an in-game puzzle.</p>
+        <div class="spec">One rib-like candidate per template is <b>always</b> rendered pre-broken — fractures are guaranteed, not possible.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Deterministic seeding &amp; hidden-math design</h2>
+      <div class="cat-num mono">02</div>
+    </div>
+    <p class="cat-intro">Reproducible-by-construction randomness engineering: a full simulation state rebuilt deterministically from a single string input, with exploit resistance designed in at the architecture level rather than patched after the fact.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">seed_engine.py</div>
+        <h3>Deterministic PRNG seeding from arbitrary input</h3>
+        <p>A custom string-hashing function maps arbitrary player-supplied text to a seed for a PRNG instance, and every downstream subsystem draws from its own independently-salted stream rather than sharing one global generator — the standard technique for keeping unrelated random draws from perturbing each other. The result: fully reproducible, shareable output from a single opaque string input, applied here to dungeon generation.</p>
+        <div class="spec">Independently-salted RNG streams per subsystem (layout, enemies, events) so one draw never perturbs another.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">seed_engine.py</div>
+        <h3>Ensemble scoring over free-text input</h3>
+        <p>Free-form user text is scored by one of several independent, randomly-selected feature extractors (lexical counts run over the input), then reduced into a bounded outcome space via modular arithmetic — a lightweight ensemble technique that stays deterministic per session while keeping the exact decision function opaque to the end user by design.</p>
+        <div class="spec">Deterministic per playthrough; unguessable in practice, with zero fairness bias against long or short answers.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">seed_engine.py</div>
+        <h3>Closing an exploit at the design layer, not the patch layer</h3>
+        <p>Identified and pre-empted a class of exploit before it could ever ship: any system where a deterministic input can bias an outcome risks that input being farmed for a guaranteed result. Solved by architecturally separating "odds computation" (deterministic, derived from input) from "outcome roll" (non-deterministic, real entropy) — a pattern borrowed from how a fair gambling system separates house-edge configuration from the actual random draw.</p>
+        <div class="spec">chance = 0.05 + 0.30 × (vowels / letters) — nudgeable, never guaranteed.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Simulation engineering &amp; self-balancing systems</h2>
+      <div class="cat-num mono">03</div>
+    </div>
+    <p class="cat-intro">A fully precomputed simulation engine — every outcome resolved into a replayable event log ahead of any rendering — with every tunable derived from formal analysis or empirical trials rather than guesswork.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">combat.py</div>
+        <h3>Deliberately asymmetric floor function, closing a guaranteed-loss edge case</h3>
+        <p>Designed a single piecewise formula that provably eliminates an entire failure mode — no input combination can make one side's output ever floor to zero — while still permitting the inverse case on the receiving end. This is the kind of asymmetric invariant you reach for whenever a shared formula serves two roles that need different guarantees, worked out here as the core combat-resolution math.</p>
+        <div class="spec">damage = max(floor, ⌊ATK − 0.5 × DEF⌋), floor = 1 except when the defender is the player and attacker ATK is below a weak-attack threshold.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">combat.py</div>
+        <h3>Formal deadlock detection in a simulation loop</h3>
+        <p>Traced a reported issue back to a real halting problem: a valid input state existed for which the simulation's core loop had no guaranteed termination condition. Rather than patch around individual causes, instrumented the loop itself with a general convergence check — N consecutive iterations producing zero state delta terminates the loop immediately — the same class of technique used to detect a stalled iterative solver, applied here to keep an edge case from becoming a multi-minute UI hang.</p>
+        <div class="spec">STALL_ROUND_LIMIT = 15, with explicit headroom verified against the longest legitimate windup mechanic in the game.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">combat.py</div>
+        <h3>Empirical parameter tuning via Monte Carlo–style trials</h3>
+        <p>A parameter that resisted a clean closed-form justification was tuned the rigorous way: ran the simulation thousands of times per candidate value, measured the resulting outcome distribution against a target behavior, and iterated until simulated results matched intent — swapping a guessed constant for one backed by actual trial data before it ever shipped.</p>
+        <div class="spec">bonus_attacks = min(3, max(0, SPD_diff) // 3) — symmetric, applies to either side identically.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">main_gui.py</div>
+        <h3>A self-normalizing threshold function, derived from live input rather than hardcoded</h3>
+        <p>Built a single parametric formula — reused across three interlocking rule instances forming a genuine cyclic dependency — where the trigger threshold for any one input is itself a function of the other two live inputs. The result is a system that provably can't be tripped by raw magnitude alone, only by imbalance between inputs, evaluated from one frozen snapshot per tick specifically to keep the cyclic dependency from producing order-dependent results.</p>
+        <div class="spec">effective_threshold = base + ⌊(other_stat_a + other_stat_b) / 2⌋ — recomputed from one frozen snapshot every frame to stay order-independent.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">process</div>
+        <h3>Data-driven tuning over intuition</h3>
+        <p>Every numeric change to the simulation is gated on running the engine thousands of times across a matrix of input profiles and checking the resulting distribution against a target curve — the same methodology used to validate any statistical model before deployment — which caught at least one shipped-looking configuration that turned out to be a mathematically guaranteed degenerate case before it ever reached a real user.</p>
+        <div class="spec">Balance regressions caught pre-release: a 1-HP enemy variant found to be a mathematically guaranteed free kill, rebalanced before ever reaching a player.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Real-time interaction &amp; custom scoring systems</h2>
+      <div class="cat-num mono">04</div>
+    </div>
+    <p class="cat-intro">Two real-time interactive systems built entirely from raw geometry, input events, and a custom scoring model — no game-engine physics or animation framework underneath either one.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">main_gui.py — bone-dig puzzle</div>
+        <h3>Ground-truth-vs-observation scoring model</h3>
+        <p>Implemented a scoring system built on a deliberate separation between ground truth and observation: a hidden reference curve (a parametrically-generated, endpoint-tapered polyline — engineered specifically to guarantee a simple, non-self-intersecting path) drives live continuous distance-to-polyline scoring against user input, while the on-screen representation the user actually sees is never the thing being measured. This ground-truth/observation split is the same shape as any inference system that scores a model against labels the model itself never gets to see.</p>
+        <div class="spec">tight ≤ 10px · stray ≥ 26px, 9 consecutive stray samples fails the cut — graded Pristine only if ≥60% of samples land tight.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">main_gui.py — bone-dig puzzle</div>
+        <h3>State-machine design around a deliberate persistence asymmetry</h3>
+        <p>Two interaction modes were engineered around opposite persistence guarantees on purpose: one holds zero retained state and derives its output purely from live cursor position every frame, the other commits every sample to a permanent, append-only record regardless of correctness. Getting this right meant explicitly reasoning about what should and shouldn't survive a state transition — validated with 3,000 fresh instantiations to confirm the generator itself never produces a degenerate or unwinnable configuration.</p>
+        <div class="spec">Verified with 3,000 fresh procedural-generation runs: zero exceptions, guaranteed minimum piece variety every run.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">main_gui.py — boss encounter</div>
+        <h3>Real-time interaction system with dynamically re-randomized target state</h3>
+        <p>Built a full real-time input-timing system from primitives: a continuously-updating position function, a target-zone geometry that gets fully re-randomized on every single interaction (successful or not, to prevent the system from ever becoming learnable/memorizable), and a tiered difficulty function gated on a running performance counter rather than wall-clock time — deliberately isolated from every other subsystem in the codebase so it stands alone as a clean, self-contained module.</p>
+        <div class="spec">3 escalating cursor-speed tiers, gated purely on hits landed against the boss — not elapsed time.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Data-driven architecture</h2>
+      <div class="cat-num mono">05</div>
+    </div>
+    <p class="cat-intro">A content pipeline architected so the entire data model is external to the codebase — new content is a data-entry operation, never a code change, enforced by a shared resolution layer rather than convention.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">enemy_db / item_db / shell_db / events</div>
+        <h3>Full separation of content data from application logic</h3>
+        <p>Architected the entire content layer — every entity definition the simulation operates on — as external tabular data rather than code, the same separation-of-concerns principle behind any real content-management or config-driven system. The application logic reads a schema; it never encodes a single specific entity by name.</p>
+        <div class="spec">10 CSV tables: enemies, items, effects, shells, events, event_effects, event_outcomes, landmarks, modifiers, bosses.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">item_db.py / effects.csv</div>
+        <h3>A single generic resolution layer, consumed by three independent call sites</h3>
+        <p>Rather than writing three parallel implementations for three superficially different features, factored out one small, generic id → (key, value) resolution engine and had all three consume it identically — the textbook DRY (don't-repeat-yourself) refactor, but proven out here by three genuinely independent subsystems sharing one source of truth with zero duplicated logic.</p>
+        <div class="spec">effect_for_family/effect_for_shell both sum multiple IDs sharing a stat, rather than the later one silently overwriting the earlier.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">item_db.py</div>
+        <h3>Composable boolean-tag filtering over hardcoded conditionals</h3>
+        <p>Replaced a pattern that scales linearly with content volume — a scattered set of hardcoded identity checks, one per special case — with a small set of composable boolean flags evaluated by one shared filter function. Adding a new special case now costs one flagged data field, not a new code path threaded through every consumer.</p>
+        <div class="spec">Multiple independent boss-exclusive drop pools share one small integer tag column rather than one bespoke system each.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">rng_utils.py</div>
+        <h3>A single generic algorithm, deduplicated across three call sites</h3>
+        <p>Identified that three separate subsystems were independently reimplementing the same weighted-random-selection algorithm and consolidated them into one dependency-free, ~15-line utility module — a deliberate exercise in recognizing structural duplication and collapsing it to a single tested implementation rather than letting three near-identical copies drift out of sync.</p>
+        <div class="spec">Non-positive weights are silently excluded from the pool rather than raising — a 0%-chance category just never gets picked.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>System architecture &amp; coordination patterns</h2>
+      <div class="cat-num mono">06</div>
+    </div>
+    <p class="cat-intro">Coordination logic for state that has to reach back into already-completed computation, and for driving structurally unrelated subsystems through one shared interface.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-tag">combat.py / main_gui.py</div>
+        <h3>Retroactive state mutation against an already-resolved computation, synced to a presentation layer</h3>
+        <p>Engineered a mechanism to reach back into a fully-resolved, already-computed result set and apply a precise counterfactual correction — recomputing exactly what a specific input's removal would have changed to every downstream running total — entirely decoupled from, and computed before, any part of the presentation layer exists. The corrected result is then handed off to an independently-timed, multi-stage animation sequencer synced to the exact instant the underlying state actually commits — a clean separation between simulation correctness and presentation timing.</p>
+        <div class="spec">slide_in → fade_favor → hold → fade_sacrifice → hold → pop → fade_out → slide_out, each stage independently timed.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">main_gui.py</div>
+        <h3>An informal structural interface (duck typing), unifying five independent subsystems</h3>
+        <p>Rather than build a bespoke dispatcher per interactive subsystem, defined one minimal structural contract — a small set of expected attributes, with no formal interface/abstract-base-class enforcement — that five completely unrelated subsystems each independently satisfy. One generic dispatcher then drives all five without ever branching on which one it's looking at: textbook polymorphism via duck typing, applied to keep the addition of a sixth subsystem a zero-touch integration.</p>
+        <div class="spec">A brand-new encounter type becomes drop-in compatible with the existing UI the moment it implements that one shared shape.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">main_gui.py</div>
+        <h3>Idempotent per-frame resync, replacing an event-driven mutation graph</h3>
+        <p>Rather than hook every individual mutation site for a piece of derived state — a pattern that scales combinatorially and is a classic source of ordering bugs — implemented a pure, idempotent recomputation function that re-derives all dependent state fresh from a single immutable snapshot every tick. This sidesteps an entire category of stale-state and update-ordering bugs by construction, including a case with a genuine circular dependency between three interacting values.</p>
+        <div class="spec">Three debuffs form a real dependency cycle (DEF→SPD→ATK→DEF) and still resolve deterministically every frame.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="category">
+    <div class="cat-head">
+      <h2>Engineering process &amp; rigor</h2>
+      <div class="cat-num mono">07</div>
+    </div>
+    <p class="cat-intro">The mechanics above didn't ship as a single build — they came out of a disciplined, self-imposed process, documented as thoroughly as the code itself.</p>
+
+    <div class="note-list">
+      <div class="note-row">
+        <div class="note-tag mono">DOCS</div>
+        <p><strong>Maintained a full decision log across 68 discrete engineering iterations</strong> spanning roughly 2.5 weeks — every entry records the problem, the alternatives considered, the chosen approach's rationale, and quantified before/after results, the same discipline as an internal RFC or ADR (architecture decision record) process.</p>
+      </div>
+      <div class="note-row">
+        <div class="note-tag mono">TESTING</div>
+        <p><strong>Built a fully headless automated test harness</strong> — no display or audio hardware required — that exercises real, live instances of every subsystem end-to-end rather than mocking dependencies, the same "test the real thing" philosophy behind integration testing over pure unit testing.</p>
+      </div>
+      <div class="note-row">
+        <div class="note-tag mono">SAFETY</div>
+        <p><strong>Enforced a byte-for-byte diff-before-overwrite protocol</strong> on every delivered change against the live working copy, both before and after — a manual analogue to the conflict-detection a version-control system provides automatically, applied here without one in place.</p>
+      </div>
+      <div class="note-row">
+        <div class="note-tag mono">ARCHIVE</div>
+        <p><strong>Treated design rationale as a first-class deliverable, not a byproduct</strong> — systematically extracting implementation reasoning out of inline comments and into a permanent, independently-readable technical record, so institutional knowledge survives independently of any single reading of the code.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Project Mosaic — selected engineering work, compiled for portfolio reference.</span>
+    <span class="mono">python · pygame (rendering only) · custom simulation &amp; content engine</span>
+  </footer>
+
+</div>

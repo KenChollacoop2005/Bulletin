@@ -1,0 +1,922 @@
+<!-- ================================================================
+     FloppyCase — IMPORTANT NOTES (read before editing)
+
+     1. z-index: discs must stay within 1-100 (below the lid at 101).
+        FloppyCrtFrame must stay ABOVE all of them (currently 200) so a
+        disc slotting in reads as going UNDER the frame's bezel. Frame
+        lives OUTSIDE .FloppyCrt as its own sibling of #FloppyCase —
+        .FloppyCrt has its own transform, which makes it a separate
+        stacking context, so anything nested inside it (Back/Foot) is
+        painted as ONE unit at .FloppyCrt's own z-index no matter what
+        z-index it declares internally. There's no way to make an
+        element inside .FloppyCrt comparable to the disc stack.
+     2. transform-origin on every disk-travel-* rule must stay "center"
+        (50% 50%). transform-origin applies to the WHOLE composed
+        transform (translate+scale+rotateX together), not to rotateX
+        alone — an off-center origin makes the translate/scale in that
+        same transform compute around the wrong point too, and the disc
+        visibly swings sideways mid-rotation instead of tilting in place.
+     3. perspective-origin (on .FloppyCase) is deliberately NOT left at
+        its 50%/50% default — that's the center of the whole 1370x500
+        panel, nowhere near where the disc actually rotates
+        (--discPreRotationX/-Y). Left alone, a rotateX lean renders as
+        an extreme skewed parallelogram instead of a clean foreshortened
+        tilt. It's aimed at the disc's own position instead. (Compare
+        Pamphlet-SawasdeeDC.html's lanyard flip, which avoids this
+        entirely by putting perspective on a small wrapper that's
+        already positioned exactly where the flip happens.)
+     4. Any multi-phase, class-toggled animation (travel/wobble/etc.)
+        must swap the old class OUT and the new class IN in the SAME
+        synchronous step. A gap with no matching class present — even
+        for one frame — makes the disc fall back to its base/jittered
+        transform rule and visibly snap there. This caused a real bug
+        during development; if a future phase looks like it "twitches
+        home" before animating, check this first.
+     5. Overriding a property that's also set via inline style (e.g. a
+        disc's z-index, set once at creation in JS) needs !important —
+        inline style beats any stylesheet rule regardless of
+        specificity otherwise. Same reasoning as main.css's own
+        .poster-active { z-index: 100 !important; }.
+     6. FloppyCaseLid/-Front need pointer-events: none. They're full-
+        panel <img>s sitting above the disc z-range; without this their
+        whole rectangles (ignoring their own alpha transparency) block
+        every mouse event from ever reaching the disc stack/hitboxes
+        underneath.
+     7. A CSS custom property can hold a WHOLE transform function, not
+        just a bare value — e.g. --discWobbleRotation1: rotateZ(3deg).
+        Lets you swap an axis/function in one place instead of editing
+        every rule that uses it.
+     8. FloppyCrtScreen (boot/idle text + per-project content, see
+        js/FloppyCase.js) lives INSIDE .FloppyCrt, unlike FloppyCrtFrame
+        — it only ever needs to sit between Back and Foot, never
+        compared against the disc stack, so it has no reason to escape
+        .FloppyCrt's own local stacking context the way Frame does.
+     9. CSS specificity trap: .FloppyCase .FloppyCrt img (written for
+        Back/Foot) matches ANY <img> later added inside .FloppyCrt too —
+        2 classes + a type selector beats a same-looking plain 2-class
+        selector. A new image nested in .FloppyCrt needs 3+ classes of
+        its own (see .FloppyCase .FloppyCrt .FloppyCrtMosaicTitle) to
+        actually win.
+
+     See memory: poster-shadow-glow-prescale for the box-shadow/filter
+     pre-scale pattern used throughout (shadows only shown once active,
+     so plain literal values, no rest-scale compensation needed here).
+     ================================================================ -->
+<div
+  class="poster FloppyCase"
+  id="FloppyCase"
+  style="
+    top: 61.5%;
+    left: 18%;
+    transform: rotate(0deg) scale(0.2);
+    --posterRestScale: 0.2;
+  "
+>
+  <style>
+    /* Fraunces — section headings in the text-entry project screens only */
+    @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap");
+
+    :root {
+      /* Native size — all three case layers are 1370x500. */
+      --floppyPanelW: 1370px;
+      --floppyPanelH: 500px;
+
+      /* Case shadow — active only. */
+      --floppyShadowOffsetY: 15px;
+      --floppyShadowBlur: 32px;
+      --floppyShadowColor: rgba(0, 0, 0, 0.55);
+
+      /* Disc shadow — filter, not box-shadow (real alpha margin on the placeholder art). */
+      --diskShadowOffsetY: 6px;
+      --diskShadowBlur: 10px;
+      --diskShadowColor: rgba(0, 0, 0, 0.5);
+
+      /* Hover/scroll selection glow — same white as main.css's hover glow. */
+      --diskHoverGlowSize: 18px;
+      --diskHoverGlowColor: rgba(255, 255, 200, 1);
+
+      /* Selected-disc pop preview */
+      --diskPopTravelPercent: 0.6; /* fraction of disc height */
+      --diskPopUpDuration: 260ms;
+      --diskPopUpEasing: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --diskPopDownDuration: 120ms;
+
+      /* Per-stack hover hitboxes — left offset set per stack in JS */
+      --diskHitboxTop: -700px;
+      --diskHitboxWidth: 450px;
+      --diskHitboxHeight: 1150px;
+
+      /* Click-to-travel — see js/FloppyCase.js's startDiscTravel() for phase sequencing */
+      --discPerspective: 1200px;
+      --discTravelZIndex: 300; /* phases 1-2 only, above FloppyCrtFrame's 200 */
+
+      /* Phase 1: travel (home -> pre-rotation) + shrink */
+      --discPreRotationX: -511px;
+      --discPreRotationY: 50px;
+      --discTravelShrinkPercent: 0.3;
+      --discTravelEasing: ease-out;
+
+      /* Phase 3: rotate (lean away from camera) */
+      --discRotationAngleDeg: 35deg;
+      --discRotateEasing: ease-in-out;
+
+      /* Phase 5: slot in (pre-rotation -> final slot position) */
+      --discSlotInDistance: 200px;
+      --discSlotInShrinkPercent: 0.2; /* additional shrink, compounds with --discTravelShrinkPercent */
+      --discSlotInEasing: linear; /* constant speed — no acceleration */
+
+      /* Slot-in wobble — two hesitation beats before the final settle (see js/FloppyCase.js's DISC_WOBBLE_ENABLED) */
+      --discPreWobbleTravelPercent: 0.5; /* plain travel before any wobble */
+      --discPreWobbleApproachEasing: linear; /* constant speed — no acceleration */
+      --discWobbleBeat1Percent: 0.65; /* cumulative fraction of --discSlotInDistance */
+      --discWobbleBeat2Percent: 0.8;
+      --discWobbleAngleDeg: 3deg; /* beat 1 = +this, beat 2 = -this */
+      --discWobbleRotation1: rotateZ(var(--discWobbleAngleDeg));
+      --discWobbleRotation2: rotateZ(calc(-1 * var(--discWobbleAngleDeg)));
+      /* interpolates scale across each beat instead of jumping to final size early */
+      --discWobbleScaleApproach: calc(
+        (1 - var(--discTravelShrinkPercent, 0.4)) *
+          (
+            1 - var(--discPreWobbleTravelPercent, 0.5) *
+              var(--discSlotInShrinkPercent, 0.2)
+          )
+      );
+      --discWobbleScale1: calc(
+        (1 - var(--discTravelShrinkPercent, 0.4)) *
+          (
+            1 - var(--discWobbleBeat1Percent, 0.65) *
+              var(--discSlotInShrinkPercent, 0.2)
+          )
+      );
+      --discWobbleScale2: calc(
+        (1 - var(--discTravelShrinkPercent, 0.4)) *
+          (
+            1 - var(--discWobbleBeat2Percent, 0.8) *
+              var(--discSlotInShrinkPercent, 0.2)
+          )
+      );
+      --discWobbleBeatDuration: 220ms; /* kept in sync with js/FloppyCase.js's DISC_WOBBLE_BEAT_DURATION_MS */
+      --discWobbleBeatEasing: ease-in-out;
+
+      /* Retract — reverse of the travel sequence, no wobble. Durations
+         pushed from js/FloppyCase.js's DISC_RETRACT_* constants. */
+      --discRetractEasing: ease-in-out;
+      --discRetractHomeEasing: ease-in-out;
+
+      /* CRT sub-element — slides in with the lid via the "crt-visible" class */
+      --crtPanelSize: 1250px;
+      --crtScale: 1.1;
+      --crtStartX: -3500px;
+      --crtEndX: -1400px;
+      --crtOffsetY: -500px;
+      --crtExitDuration: 100ms; /* fast dart off-screen on close */
+
+      /* CRT click hitbox — relative to .FloppyCrt's own 1250x1250 canvas */
+      --crtHitboxTop: 58px;
+      --crtHitboxLeft: 50px;
+      --crtHitboxWidth: 1150px;
+      --crtHitboxHeight: 1000px;
+
+      /* CRT boot/idle text (js/FloppyCase.js) — plain literal color, active-only */
+      --crtScreenPadding: 220px;
+      --crtScreenFontSize: 22px;
+      --crtScreenLineHeight: 1.5;
+      --crtScreenTextColor: #6cff6c;
+
+      /* Wiki-style text entries (TEXT_PROJECT_SCREENS in js/FloppyCase.js)
+         — palette + grid background lifted from mosaic-portfolio.html. */
+      --crtTextScreenBg: #0c1a19;
+      --crtTextScreenPanelBg: #12211f;
+      --crtTextScreenBorderColor: #244b46;
+      --crtTextScreenGridLine: #1a332f;
+      --crtTextScreenTextColor: #e7efe9;
+      --crtTextScreenTextDim: #9fb6ad;
+      --crtTextScreenTextFaint: #6e8880; /* stat-tile labels — source's --text-faint */
+      --crtTextScreenAccent: #6bdcc9;
+      --crtTextScreenAccentDim: #3a7d70;
+      --crtTextScreenCoral: #f2a65a; /* stat-tile numbers — source's --coral */
+      --crtTextScreenCoralDim: #b97a3d; /* card spec lines — source's --coral-dim */
+      --crtTextScreenTerminalGreenDim: rgba(108, 255, 108, 0.45); /* dim border for the terminal-green disk-full notice/button */
+      --crtScrollbarWidth: 8px;
+      --crtScrollbarTop: 240px; /* independent of --crtEntryText* — position/size the bar entirely on its own */
+      --crtScrollbarHeight: 510px;
+      --crtScrollbarRight: 0px; /* small nudge past --crtScreenPadding — see .FloppyCrtTextScreenScrollTrack */
+      --crtTextScreenTitleFontSize: 29px;
+      --crtTextScreenHeadingFontSize: 26px; /* Fraunces section headings */
+      --crtTextScreenTocWidth: 25%; /* floated left; body text wraps around it, then fills full width once past it */
+      --crtTextScreenTocGap: 28px; /* gap between the floated TOC and the wrapped text beside it */
+      --crtTextScreenTocFontSize: 16px; /* same monospace family as body paragraphs, smaller — a side element */
+      --crtTextScreenTocPadding: 10px 14px;
+
+      /* Entry-screen background/text boxes — fully independent of each
+         other, and of --crtScreenPadding (a text inset only). Started
+         from --crtHitbox*'s own fitted-by-eye rect, widened 10%. */
+      --crtEntryBgTop: 180px;
+      --crtEntryBgLeft: 166px;
+      --crtEntryBgWidth: 1000px;
+      --crtEntryBgHeight: 800px;
+
+      --crtEntryTextTop: 58px;
+      --crtEntryTextLeft: 0px;
+      --crtEntryTextWidth: 1265px;
+      --crtEntryTextHeight: 1000px;
+
+      /* CrtMosiacTitle.png — 420x420 source, wordmark centered in a
+         404x100 band; object-fit: cover crops the padding away, so
+         Width/Height below describe the visible logo, not the file.
+         Top/Left are its CENTER (translate(-50%,-50%) then scale()), so
+         Scale grows/shrinks it in place. */
+      --crtMosaicTitleTop: 185px;
+      --crtMosaicTitleLeft: 622px;
+      --crtMosaicTitleWidth: 320px;
+      --crtMosaicTitleHeight: 80px;
+      --crtMosaicTitleScale: 1.1;
+    }
+
+    .FloppyCase {
+      padding: 0;
+      width: var(--floppyPanelW);
+      height: var(--floppyPanelH);
+      overflow: visible;
+      background: transparent;
+      box-shadow: none;
+      /* required for phase 2's rotateX lean to read as 3D, not a flat squash */
+      perspective: var(--discPerspective, 1200px);
+      /* aimed at the disc's own rendered position, not the panel center — see IMPORTANT NOTES */
+      perspective-origin: calc(
+          var(--discPreRotationX) + var(--diskSize, 420px) / 2
+        )
+        calc(var(--discPreRotationY) + var(--diskSize, 420px) / 2);
+    }
+
+    .FloppyCase img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--floppyPanelW);
+      height: var(--floppyPanelH);
+      display: block;
+    }
+
+    .FloppyCase .FloppyCaseBase {
+      z-index: 0;
+      filter: none; /* shadow only once active */
+    }
+    /* z-index 1-100 reserved for the disc stack */
+    .FloppyCase .FloppyCaseLid {
+      z-index: 101;
+      pointer-events: none; /* see IMPORTANT NOTES */
+      transform: translateY(0);
+      transition: transform var(--floppyLidDuration, 500ms) ease;
+    }
+    .FloppyCase .FloppyCaseFront {
+      z-index: 102;
+      pointer-events: none;
+    }
+
+    .FloppyCase.lid-open .FloppyCaseLid {
+      transform: translateY(calc(-1 * var(--floppyLidTravelDistance, 200px)));
+    }
+
+    /* Disc — one shared rule for all discs; per-disc values are custom
+       properties set in js/FloppyCase.js's createDiskStacks() */
+    .FloppyCase .FloppyDisk {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--diskSize, 420px);
+      height: var(--diskSize, 420px);
+      display: block;
+      pointer-events: none;
+      transform-origin: center;
+      transform: translate(var(--diskStackX, 0px), var(--diskClosedY, 0px));
+      filter: none;
+      transition: transform var(--diskCloseDuration, 150ms) linear;
+    }
+    .FloppyCase.lid-open .FloppyDisk {
+      /* jitter is re-randomized each open (js/FloppyCase.js's randomizeDiskFanning), never on disc index 1 */
+      transform: translate(
+          calc(var(--diskStackX, 0px) + var(--diskOpenJitterX, 0px)),
+          calc(var(--diskOpenY, 0px) + var(--diskOpenJitterY, 0px))
+        )
+        rotate(var(--diskOpenRotate, 0deg));
+      /* constant px/sec per disc via --diskOpenDuration, not constant duration */
+      transition: transform var(--diskOpenDuration, 1s) linear
+        var(--diskOpenStartDelay, 100ms);
+    }
+
+    /* Selected-disc pop preview — js/FloppyCase.js toggles .disk-popped */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk {
+      transition: transform var(--diskPopDownDuration, 120ms) ease-out;
+    }
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-popped {
+      transform: translate(
+          var(--diskStackX, 0px),
+          calc(
+            var(--diskOpenY, 0px) -
+              (var(--diskSize, 420px) * var(--diskPopTravelPercent, 0.8))
+          )
+        )
+        rotate(0deg);
+      transition: transform var(--diskPopUpDuration, 260ms)
+        var(--diskPopUpEasing, cubic-bezier(0.34, 1.56, 0.64, 1));
+    }
+
+    /* Click-to-travel phases 1-2: pop position -> pre-rotation -> leaned */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-1,
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-2 {
+      z-index: var(--discTravelZIndex, 300) !important;
+    }
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-1 {
+      transform: translate(var(--discPreRotationX), var(--discPreRotationY))
+        scale(calc(1 - var(--discTravelShrinkPercent, 0.4))) rotateX(0deg);
+      transform-origin: center;
+      transition: transform var(--discTravelDuration, 450ms)
+        var(--discTravelEasing, ease-out);
+    }
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-2 {
+      transform: translate(var(--discPreRotationX), var(--discPreRotationY))
+        scale(calc(1 - var(--discTravelShrinkPercent, 0.4)))
+        rotateX(var(--discRotationAngleDeg, -65deg));
+      transform-origin: center;
+      transition: transform var(--discRotateDuration, 700ms)
+        var(--discRotateEasing, ease-in-out);
+    }
+    /* Wobble approach: plain travel before any hesitation beats */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-3-approach {
+      transform: translate(
+          var(--discPreRotationX),
+          calc(
+            var(--discPreRotationY) -
+              (
+                var(--discSlotInDistance, 100px) *
+                  var(--discPreWobbleTravelPercent, 0.5)
+              )
+          )
+        )
+        scale(var(--discWobbleScaleApproach))
+        rotateX(var(--discRotationAngleDeg, -65deg));
+      transform-origin: center;
+      transition: transform var(--discSlotInDuration, 400ms)
+        var(--discPreWobbleApproachEasing, cubic-bezier(0.55, 0, 0.85, 0.35));
+    }
+    /* Wobble beat 1 — starts moving immediately on entry, no pre-delay */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-3-wobble-1 {
+      transform: translate(
+          var(--discPreRotationX),
+          calc(
+            var(--discPreRotationY) -
+              (
+                var(--discSlotInDistance, 100px) *
+                  var(--discWobbleBeat1Percent, 0.65)
+              )
+          )
+        )
+        scale(var(--discWobbleScale1))
+        rotateX(var(--discRotationAngleDeg, -65deg)) var(--discWobbleRotation1);
+      transform-origin: center;
+      transition: transform var(--discWobbleBeatDuration, 220ms)
+        var(--discWobbleBeatEasing, ease-in-out);
+    }
+    /* Wobble beat 2 — opposite rotation direction from beat 1 */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-3-wobble-2 {
+      transform: translate(
+          var(--discPreRotationX),
+          calc(
+            var(--discPreRotationY) -
+              (
+                var(--discSlotInDistance, 100px) *
+                  var(--discWobbleBeat2Percent, 0.8)
+              )
+          )
+        )
+        scale(var(--discWobbleScale2))
+        rotateX(var(--discRotationAngleDeg, -65deg)) var(--discWobbleRotation2);
+      transform-origin: center;
+      transition: transform var(--discWobbleBeatDuration, 220ms)
+        var(--discWobbleBeatEasing, ease-in-out);
+    }
+    /* Final clean insert — same rule with or without the wobble */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-travel-3 {
+      transform: translate(
+          var(--discPreRotationX),
+          calc(var(--discPreRotationY) - var(--discSlotInDistance, 100px))
+        )
+        scale(
+          calc(
+            (1 - var(--discTravelShrinkPercent, 0.4)) *
+              (1 - var(--discSlotInShrinkPercent, 0.2))
+          )
+        )
+        rotateX(var(--discRotationAngleDeg, -65deg));
+      transform-origin: center;
+      transition: transform var(--discSlotInDuration, 400ms)
+        var(--discSlotInEasing, linear);
+    }
+
+    /* Retract — quick reverse to pre-rotation (unrotating, no wobble), then home. Elevated z-index throughout, same reasoning as disk-travel-1/-2. */
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-retract-1,
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-retract-2 {
+      z-index: var(--discTravelZIndex, 300) !important;
+    }
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-retract-1 {
+      transform: translate(var(--discPreRotationX), var(--discPreRotationY))
+        scale(calc(1 - var(--discTravelShrinkPercent, 0.4))) rotateX(0deg);
+      transform-origin: center;
+      transition: transform var(--discRetractDuration, 250ms)
+        var(--discRetractEasing, ease-in-out);
+    }
+    .FloppyCase.lid-open.stacks-settled .FloppyDisk.disk-retract-2 {
+      transform: translate(
+          calc(var(--diskStackX, 0px) + var(--diskOpenJitterX, 0px)),
+          calc(var(--diskOpenY, 0px) + var(--diskOpenJitterY, 0px))
+        )
+        rotate(var(--diskOpenRotate, 0deg));
+      transform-origin: center;
+      transition: transform var(--discRetractHomeDuration, 300ms)
+        var(--discRetractHomeEasing, ease-in-out)
+        var(--discRetractPauseDelay, 100ms);
+    }
+
+    /* Stack hover hitboxes — created in js/FloppyCase.js's createStackHitboxes() */
+    .FloppyCase .FloppyStackHitbox {
+      position: absolute;
+      top: var(--diskHitboxTop);
+      width: var(--diskHitboxWidth);
+      height: var(--diskHitboxHeight);
+      z-index: 50;
+      pointer-events: none;
+    }
+    .FloppyCase.stacks-settled .FloppyStackHitbox {
+      pointer-events: auto;
+    }
+
+    /* Selection highlight — same white glow as main.css's hover glow */
+    .poster-active.FloppyCase .FloppyDisk.disk-hover-highlight {
+      filter: drop-shadow(
+          0 var(--diskShadowOffsetY) var(--diskShadowBlur)
+            var(--diskShadowColor)
+        )
+        drop-shadow(0 0 var(--diskHoverGlowSize) var(--diskHoverGlowColor));
+    }
+
+    /* CRT — Back+Foot and the standalone Frame slide in together via shared --crt* values */
+    .FloppyCase .FloppyCrt,
+    .FloppyCase .FloppyCrtFrame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--crtPanelSize);
+      height: var(--crtPanelSize);
+      display: block;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(var(--crtStartX), var(--crtOffsetY))
+        translate(-50%, -50%) scale(var(--crtScale));
+      transition:
+        transform var(--crtExitDuration, 250ms) ease-in,
+        opacity 0s linear var(--crtExitDuration, 250ms);
+    }
+    .FloppyCase.crt-visible .FloppyCrt,
+    .FloppyCase.crt-visible .FloppyCrtFrame {
+      transform: translate(var(--crtEndX), var(--crtOffsetY))
+        translate(-50%, -50%) scale(var(--crtScale));
+      opacity: 1;
+      transition:
+        transform var(--crtSlideDuration, 1.9s) ease-out,
+        opacity 0s linear 0s;
+    }
+    .FloppyCase .FloppyCrt {
+      z-index: -1;
+    }
+    .FloppyCase .FloppyCrt img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .FloppyCase .FloppyCrtBack {
+      z-index: 0;
+      pointer-events: none;
+    }
+    .FloppyCase .FloppyCrtFoot {
+      z-index: 3;
+      pointer-events: none;
+    }
+    /* Boot/idle text + per-project image — see IMPORTANT NOTES #8 */
+    .FloppyCase .FloppyCrtScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .FloppyCase .FloppyCrtText {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: var(--crtScreenPadding, 70px);
+      box-sizing: border-box;
+    }
+    .FloppyCase .FloppyCrtText[hidden] {
+      display: none;
+    }
+    .FloppyCase .FloppyCrtLine {
+      font-family: "Courier New", Courier, monospace;
+      font-size: var(--crtScreenFontSize, 22px);
+      line-height: var(--crtScreenLineHeight, 1.5);
+      color: var(--crtScreenTextColor, #6cff6c);
+      white-space: pre;
+      min-height: 1em;
+    }
+    .FloppyCase .FloppyCrtProjectImage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .FloppyCase .FloppyCrtProjectImage[hidden] {
+      display: none;
+    }
+
+    /* Wiki-style text entries (TEXT_PROJECT_SCREENS) — this wrapper is
+       just the show/hide toggle + shared font/color + pointer-events hit
+       area (crt-text-active below drops FloppyCrtHitbox's pointer-events
+       so clicks/drags/wheel reach this instead). Bg (visible
+       background+grid) and Viewport (scrollable text) are its two
+       independently-positioned children below. */
+    .FloppyCase .FloppyCrtTextScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-family: "Courier New", Courier, monospace;
+      font-size: var(--crtScreenFontSize, 22px);
+      line-height: var(--crtScreenLineHeight, 1.5);
+      color: var(--crtTextScreenTextColor, #e7efe9);
+      pointer-events: auto;
+    }
+    .FloppyCase .FloppyCrtTextScreen[hidden] {
+      display: none;
+    }
+    /* Purely decorative — sized/positioned by --crtEntryBg*, independent of --crtEntryText* below */
+    .FloppyCase .FloppyCrtTextScreenBg {
+      position: absolute;
+      top: var(--crtEntryBgTop, 58px);
+      left: var(--crtEntryBgLeft, -8px);
+      width: var(--crtEntryBgWidth, 1265px);
+      height: var(--crtEntryBgHeight, 1000px);
+      background: var(--crtTextScreenBg, #0c1a19);
+      background-image:
+        linear-gradient(
+          var(--crtTextScreenGridLine, #1a332f) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          var(--crtTextScreenGridLine, #1a332f) 1px,
+          transparent 1px
+        );
+      background-size: 42px 42px;
+      background-position: -1px -1px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    /* The actual scrollable content — sized/positioned by --crtEntryText*,
+       independent of --crtEntryBg* above; --crtScreenPadding is the text
+       inset here (same role as for the boot text). */
+    .FloppyCase .FloppyCrtTextScreenViewport {
+      position: absolute;
+      top: var(--crtEntryTextTop, 58px);
+      left: var(--crtEntryTextLeft, -8px);
+      width: var(--crtEntryTextWidth, 1265px);
+      height: var(--crtEntryTextHeight, 1000px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+      padding: var(--crtScreenPadding, 70px)
+        calc(
+          var(--crtScreenPadding, 70px) + var(--crtScrollbarWidth, 8px) + 14px
+        )
+        calc(var(--crtScreenPadding, 70px) + 40px) var(--crtScreenPadding, 70px);
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .FloppyCase .FloppyCrtTextScreenViewport::-webkit-scrollbar {
+      display: none;
+    }
+    .FloppyCase .FloppyCrtTextScreenTitle {
+      text-align: center;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+      font-size: var(--crtTextScreenTitleFontSize, 29px);
+      margin-bottom: 28px;
+    }
+    /* Replaces the (now-empty) title above — see IMPORTANT NOTES #9 for
+       why this selector needs 3 classes. */
+    .FloppyCase .FloppyCrt .FloppyCrtMosaicTitle {
+      position: absolute;
+      top: var(--crtMosaicTitleTop, 318px);
+      left: var(--crtMosaicTitleLeft, 622px);
+      width: var(--crtMosaicTitleWidth, 320px);
+      height: var(--crtMosaicTitleHeight, 80px);
+      transform: translate(-50%, -50%) scale(var(--crtMosaicTitleScale, 1));
+      object-fit: cover;
+      object-position: center;
+      pointer-events: none;
+    }
+    /* TOC is a CSS float, not a column — flow-root just contains its height */
+    .FloppyCase .FloppyCrtTextScreenBody {
+      display: flow-root;
+    }
+    /* Font-family/size set here so label/link/num scale together */
+    .FloppyCase .FloppyCrtTextScreenToc {
+      float: left;
+      width: var(--crtTextScreenTocWidth, 22%);
+      margin: 0 var(--crtTextScreenTocGap, 28px) 20px 0;
+      background: var(--crtTextScreenPanelBg, #12211f);
+      border: 1px solid var(--crtTextScreenBorderColor, #244b46);
+      padding: var(--crtTextScreenTocPadding, 10px 14px);
+      font-size: var(--crtTextScreenTocFontSize, 16px);
+      position: relative;
+    }
+    .FloppyCase .FloppyCrtTextScreenToc::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 10px;
+      height: 10px;
+      border-top: 1px solid var(--crtTextScreenAccentDim, #3a7d70);
+      border-left: 1px solid var(--crtTextScreenAccentDim, #3a7d70);
+    }
+    .FloppyCase .FloppyCrtTextScreenTocLabel {
+      font-size: 0.7em;
+      letter-spacing: 0.12em;
+      color: var(--crtTextScreenAccent, #6bdcc9);
+      margin-bottom: 10px;
+    }
+    .FloppyCase .FloppyCrtTextScreenTocLink {
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .FloppyCase .FloppyCrtTextScreenTocLink:hover {
+      text-decoration: underline;
+      color: var(--crtTextScreenAccent, #6bdcc9);
+    }
+    .FloppyCase .FloppyCrtTextScreenTocNum {
+      color: var(--crtTextScreenAccentDim, #3a7d70);
+      margin-right: 10px;
+    }
+    .FloppyCase .FloppyCrtTextScreenSection {
+      margin-bottom: 36px;
+    }
+    .FloppyCase .FloppyCrtTextScreenHeading {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      color: var(--crtTextScreenAccent, #6bdcc9);
+      font-size: var(--crtTextScreenHeadingFontSize, 26px);
+      margin: 0 0 10px;
+    }
+    .FloppyCase .FloppyCrtTextScreenSection p {
+      margin: 0 0 14px;
+      color: var(--crtTextScreenTextDim, #9fb6ad);
+    }
+    .FloppyCase .FloppyCrtTextScreenIntro {
+      margin-top: -6px; /* lines up with the TOC box's own top edge */
+      margin-bottom: 18px;
+    }
+    .FloppyCase .FloppyCrtTextScreenIntro p {
+      margin: 0 0 14px;
+      text-indent: 2em;
+      color: var(--crtTextScreenTextDim, #9fb6ad);
+    }
+    /* Lifted from mosaic-portfolio.html's .stat-strip/.stat-tile. No
+       explicit width — a plain block fills whatever's available between
+       the viewport's padding and the scrollbar. clear:left forces it
+       below the floated TOC regardless of how tall the intro text is. */
+    .FloppyCase .FloppyCrtStatStrip {
+      clear: left;
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--crtTextScreenBorderColor, #244b46);
+      border: 1px solid var(--crtTextScreenBorderColor, #244b46);
+    }
+    .FloppyCase .FloppyCrtStatTile {
+      background: var(--crtTextScreenPanelBg, #12211f);
+      padding: 18px 16px;
+    }
+    .FloppyCase .FloppyCrtStatNum {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--crtTextScreenCoral, #f2a65a);
+      font-variant-numeric: tabular-nums;
+    }
+    .FloppyCase .FloppyCrtStatLabel {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--crtTextScreenTextFaint, #6e8880);
+      letter-spacing: 0.02em;
+    }
+    /* Lifted from mosaic-portfolio.html's .card-grid/.card. --crtCardCount
+       (inline per section) divides the row into that many equal columns —
+       sections have different card counts (3/3/2/2). No explicit width,
+       same reasoning as the stat-strip. */
+    .FloppyCase .FloppyCrtCardGrid {
+      display: grid;
+      grid-template-columns: repeat(var(--crtCardCount, 3), 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .FloppyCase .FloppyCrtCard {
+      background: var(--crtTextScreenPanelBg, #12211f);
+      border: 1px solid var(--crtTextScreenBorderColor, #244b46);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+    .FloppyCase .FloppyCrtCard::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 10px;
+      height: 10px;
+      border-top: 1px solid var(--crtTextScreenAccentDim, #3a7d70);
+      border-left: 1px solid var(--crtTextScreenAccentDim, #3a7d70);
+    }
+    .FloppyCase .FloppyCrtCardTitle {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 500;
+      font-size: 15px;
+      line-height: 1.3;
+      color: var(--crtTextScreenTextColor, #e7efe9);
+      margin: 0;
+      min-height: 3.9em; /* reserves 3 lines so every card's description lines up regardless of title length */
+    }
+    .FloppyCase .FloppyCrtCard p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--crtTextScreenTextDim, #9fb6ad);
+    }
+    .FloppyCase .FloppyCrtCardSpec {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px dashed var(--crtTextScreenBorderColor, #244b46);
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--crtTextScreenCoralDim, #b97a3d);
+    }
+    /* "Load next floppy" — deliberately terminal green (--crtScreenTextColor),
+       not the mosaic palette, so it reads as the disk itself talking. */
+    .FloppyCase .FloppyCrtNextFloppySection {
+      margin-top: 10px;
+      margin-bottom: 40px;
+    }
+    .FloppyCase .FloppyCrtDiskFullNotice {
+      font-size: 13px;
+      color: var(--crtScreenTextColor, #6cff6c);
+      margin-bottom: 14px;
+    }
+    .FloppyCase .FloppyCrtNextFloppyPrompt {
+      display: inline-block;
+      padding: 10px 16px;
+      border: 1px solid
+        var(--crtTextScreenTerminalGreenDim, rgba(108, 255, 108, 0.45));
+      color: var(--crtScreenTextColor, #6cff6c);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+    .FloppyCase .FloppyCrtNextFloppyPrompt:hover {
+      background: var(--crtTextScreenPanelBg, #12211f);
+      border-color: var(--crtScreenTextColor, #6cff6c);
+    }
+    /* Horizontal position tracks the TEXT box's own right edge (--crtScreenPadding
+       in from it); vertical position/height is fully independent — see --crtScrollbarTop/-Height. */
+    .FloppyCase .FloppyCrtTextScreenScrollTrack {
+      position: absolute;
+      top: var(--crtScrollbarTop, 62px);
+      height: var(--crtScrollbarHeight, 992px);
+      left: calc(
+        var(--crtEntryTextLeft, -8px) + var(--crtEntryTextWidth, 1265px) -
+          var(--crtScreenPadding, 70px) - var(--crtScrollbarWidth, 8px) +
+          var(--crtScrollbarRight, 0px)
+      );
+      width: var(--crtScrollbarWidth, 8px);
+      background: var(--crtTextScreenBorderColor, #244b46);
+      border-radius: calc(var(--crtScrollbarWidth, 8px) / 2); /* half the width — a true pill, top+bottom both rounded */
+    }
+    .FloppyCase .FloppyCrtTextScreenScrollThumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--crtTextScreenAccent, #6bdcc9);
+      border-radius: calc(var(--crtScrollbarWidth, 8px) / 2);
+      cursor: grab;
+    }
+    .FloppyCase .FloppyCrtTextScreenScrollThumb:active {
+      cursor: grabbing;
+    }
+
+    /* Lives outside .FloppyCrt on purpose — see IMPORTANT NOTES */
+    .FloppyCase .FloppyCrtFrame {
+      z-index: 200;
+    }
+    .FloppyCase .FloppyCrtHitbox {
+      position: absolute;
+      top: var(--crtHitboxTop);
+      left: var(--crtHitboxLeft);
+      width: var(--crtHitboxWidth);
+      height: var(--crtHitboxHeight);
+      z-index: 10;
+      pointer-events: auto;
+    }
+    .FloppyCase.crt-text-active .FloppyCrtHitbox {
+      pointer-events: none;
+    }
+
+    .poster-active.FloppyCase {
+      left: 105% !important;
+      top: 112% !important;
+      transform: translate(-50%, -50%) scale(0.9) !important;
+      z-index: 100 !important;
+    }
+
+    .poster-active.FloppyCase .FloppyCaseBase {
+      filter: drop-shadow(
+        0 var(--floppyShadowOffsetY) var(--floppyShadowBlur)
+          var(--floppyShadowColor)
+      );
+    }
+    .poster-active.FloppyCase .FloppyDisk {
+      filter: drop-shadow(
+        0 var(--diskShadowOffsetY) var(--diskShadowBlur) var(--diskShadowColor)
+      );
+    }
+  </style>
+
+  <img
+    class="FloppyCaseBase"
+    src="Assets/FloppyDiskCodeBase/FloppyCaseBase.png"
+    alt="Floppy case base"
+  />
+  <img
+    class="FloppyCaseLid"
+    src="Assets/FloppyDiskCodeBase/FloppyCaseLid.png"
+    alt="Floppy case lid"
+  />
+  <img
+    class="FloppyCaseFront"
+    src="Assets/FloppyDiskCodeBase/FloppyCaseFront.png"
+    alt="Floppy case front"
+  />
+
+  <!-- CRT — Back+Foot move together here; FloppyCrtFrame is a separate
+       sibling (see IMPORTANT NOTES) that slides in sync via the same --crt* vars -->
+  <div class="FloppyCrt">
+    <img
+      class="FloppyCrtBack"
+      src="Assets/FloppyDiskCodeBase/FloppyCrtBack.png"
+      alt="Floppy CRT back"
+    />
+    <div class="FloppyCrtScreen">
+      <div class="FloppyCrtText"></div>
+      <img class="FloppyCrtProjectImage" alt="" hidden />
+      <div class="FloppyCrtTextScreen" hidden>
+        <div class="FloppyCrtTextScreenBg"></div>
+        <div class="FloppyCrtTextScreenViewport"></div>
+        <div class="FloppyCrtTextScreenScrollTrack">
+          <div class="FloppyCrtTextScreenScrollThumb"></div>
+        </div>
+      </div>
+    </div>
+    <img
+      class="FloppyCrtFoot"
+      src="Assets/FloppyDiskCodeBase/FloppyCrtFoot.png"
+      alt="Floppy CRT foot"
+    />
+    <div class="FloppyCrtHitbox"></div>
+  </div>
+  <img
+    class="FloppyCrtFrame"
+    src="Assets/FloppyDiskCodeBase/FloppyCrtFrame.png"
+    alt="Floppy CRT frame"
+  />
+</div>

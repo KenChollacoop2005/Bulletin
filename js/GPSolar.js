@@ -48,10 +48,14 @@
   // Click jiggle is isolated — no propagation.
   // ============================================================
 
-  const GRAVITY = 0.018; // restoring force toward rest (higher = snappier return)
-  const DAMPING = 0.88; // velocity multiplier per frame (lower = faster decay)
-  const SWIPE_SCALE = 0.026; // how much mouse velocity translates to angular impulse
-  const MAX_ANGLE = 22; // degrees — maximum swing limit
+  // Tuned closer to SafeSlip's board-state pendulum feel (js/physics.js,
+  // gravity 0.008 / damping 0.92 / swipeScale 0.015 / maxAngle 12) without
+  // fully matching it — GPSolar still has its own click jiggle and
+  // neighbor coupling, so it keeps a bit more snap than SafeSlip.
+  const GRAVITY = 0.011; // restoring force toward rest (higher = snappier return)
+  const DAMPING = 0.905; // velocity multiplier per frame (lower = faster decay)
+  const SWIPE_SCALE = 0.019; // how much mouse velocity translates to angular impulse
+  const MAX_ANGLE = 27; // degrees — maximum swing limit
   const NEIGHBOR_RATIO = 0.38; // fraction of impulse passed to immediate neighbors
   const CLICK_IMPULSE = 2; // degrees/frame added on click jiggle
 
@@ -72,10 +76,11 @@
 
   function applyImpulse(name, impulse) {
     state[name].vel += impulse;
-    // Clamp velocity to prevent wild swings
+    // Clamp velocity to prevent wild swings — 0.45, closer to SafeSlip's
+    // 0.4 (js/physics.js) than GPSolar's old 0.5, for a gentler per-swipe cap
     state[name].vel = Math.max(
-      -MAX_ANGLE * 0.5,
-      Math.min(MAX_ANGLE * 0.5, state[name].vel),
+      -MAX_ANGLE * 0.45,
+      Math.min(MAX_ANGLE * 0.45, state[name].vel),
     );
   }
 

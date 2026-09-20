@@ -52,7 +52,31 @@ body {
   position: absolute;
   background-color: white;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  /* Baseline for the hover-glow formula below. A poster resting at a
+     non-1 scale() shrinks any filter applied to it by that same factor
+     (filter is computed on the element's own content before its own
+     transform is composited) — so a poster at scale(0.15) needs its
+     raw blur radius divided by 0.15 to read as a normal --posterHoverGlowBase
+     glow once rendered. Posters override --posterRestScale inline, next
+     to their own transform: scale(...) (see DMS4all.html), so the two
+     numbers stay physically next to each other instead of one living in
+     a formula someone has to rediscover later. Default 1 = no
+     compensation needed. */
+  --posterHoverGlowBase: 10px;
+  --posterRestScale: 1;
+  /* Narrowed from "all" — audited every poster that relies on this base
+     transition (doesn't declare its own): left/top/transform cover the
+     open/close move-to-center animation (SaturnCD, Pamphlet, DMS4all,
+     NameCard, Poster2/3, AccessibilityPaper all rely on this rather than
+     their own override); filter covers the .zoomed-in .poster:hover
+     glow below. Posters that declare their own transition (SafeSlip,
+     GPSolar, APFolder) already override this wholesale and are
+     unaffected either way. */
+  transition:
+    left 0.3s ease,
+    top 0.3s ease,
+    transform 0.3s ease,
+    filter 0.3s ease;
   cursor: pointer;
   transform-origin: center;
   display: flex;
@@ -72,7 +96,13 @@ body {
 
 .zoomed-in .poster:hover {
   transform: scale(1.02);
-  filter: drop-shadow(0 0 10px rgba(255, 255, 200, 0.8));
+  /* calc(base / restScale) — see --posterHoverGlowBase/--posterRestScale
+     above. For any poster that doesn't override --posterRestScale this
+     is calc(10px / 1) = 10px, identical to the old hardcoded value. */
+  filter: drop-shadow(
+    0 0 calc(var(--posterHoverGlowBase) / var(--posterRestScale, 1))
+      rgba(255, 255, 200, 0.8)
+  );
 }
 
 /* suppress global hover scale for GPSolar — too large a bounding box */
@@ -89,9 +119,81 @@ body {
   cursor: default;
 }
 
-.has-active .poster:not(.poster-active),
-.has-active .overlay-blur {
-  filter: blur(10px) opacity(0.8);
+/* ============================================================
+   BOARD DIM/BLUR OVERLAY
+   Single element (the pre-existing, previously-unstyled
+   .overlay-layer div in index.html, direct child of .corkboard)
+   using backdrop-filter instead of filter. filter blurs an
+   element's own rendered content; backdrop-filter blurs whatever is
+   visually behind the element instead — so one element sitting above
+   the resting posters does the whole board's dimming in a single
+   compositor pass, instead of the browser recomputing a full blur
+   convolution on every individual poster, every frame, for the whole
+   transition.
+
+   NOTE: .overlay-blur (the class this replaces) turned out to NOT be
+   a single full-board element — it's shared by three small decorative
+   pieces (SafeSlipPin, DMSPin, the Saturn tape overlay), each meant to
+   visually blur along with the board. That class/rule is left as-is
+   on purpose: those elements sit at z-index 10, below this overlay's
+   z-index 50, so they get folded into "whatever is behind" this layer
+   and read as blurred/dimmed automatically — no separate rule needed
+   for them anymore.
+
+   z-index 50 sits above resting posters (z-index: auto) and the
+   pin/tape overlays (z-index: 10), below .poster-active (z-index: 100).
+   Only opacity transitions — backdrop-filter itself is a fixed value
+   from the moment the element exists, so the animation stays
+   compositor-only (cheap) instead of recalculating the blur amount at
+   every frame. */
+.overlay-layer {
+  /* Sized to the true viewport (100vw/100vh), not .corkboard's own
+     1200x800 box — otherwise things that overflow the board's edges
+     (GPSolar's bag, SafeSlip's fixed-position bloom elements) sit
+     outside the blurred area entirely. position: fixed would be the
+     obvious tool for "always full viewport," but .corkboard has a
+     transform set (for the 3D tilt/zoom), and any transform on an
+     ancestor makes IT the containing block for fixed descendants
+     instead of the real viewport — so position: fixed here would
+     actually behave like position: absolute anyway. Moving this
+     element outside .corkboard to dodge that would fix the sizing but
+     break the z-index relationship with .poster-active below, since
+     the whole board would then sit in a different stacking context as
+     one unit. So instead: position: absolute (keeping it in the
+     board's own stacking context, where the z-index comparison against
+     .poster-active still works) + explicit 100vw/100vh sizing,
+     centered on the board's own center point via top/left/transform.
+     That center point already coincides with the true viewport center
+     (.scene-container flex-centers .corkboard), and this only ever
+     needs to be visible while the board is fully zoomed in anyway
+     (opening a poster requires isZoomedIn first, i.e.
+     .scene-container/.corkboard's transforms are both at their
+     identity/no-op values), so there's no scale mismatch to worry
+     about. backdrop-filter still only has to blur one viewport's worth
+     of pixels — a single compositor-level operation regardless of
+     screen size, not something that scales with poster count. */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  opacity: 0;
+  -webkit-backdrop-filter: blur(5px) brightness(0.85);
+  backdrop-filter: blur(5px) brightness(0.85);
+  transition: opacity 0.3s ease;
+  /* Not a click target: the click-outside-to-close logic in main.js
+     checks e.target.closest(".poster-active") on a document-level
+     listener, so it works regardless of this element's pointer-events.
+     But clicking a DIFFERENT resting poster to switch to it relies on
+     the click actually landing on that poster — pointer-events: auto
+     here would intercept it first and silently break that switch. */
+  pointer-events: none;
+}
+
+.has-active .overlay-layer {
+  opacity: 1;
 }
 
 .has-active .poster-active {

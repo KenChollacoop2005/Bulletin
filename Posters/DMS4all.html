@@ -1,0 +1,587 @@
+<!-- ================================================================
+     DMS4all — IMPORTANT NOTES (read before editing this poster, or
+     forking it for a new one)
+
+     1. box-shadow and filter are both computed on an element's own box
+        BEFORE that element's own transform: scale() is applied, and
+        they are independent properties — .has-active .poster-active's
+        filter: none in main.css never cancels box-shadow. Any poster
+        resting at a non-1 scale() (this one: 0.15) that doesn't want
+        the generic .poster { box-shadow: 0 5px 15px rgba(0,0,0,0.2) }
+        from main.css must explicitly set box-shadow: none itself, the
+        same way it must handle filter. See memory:
+        poster-shadow-glow-prescale.
+     2. box-shadow traces an element's rectangular bounding box
+        regardless of its content; filter: drop-shadow traces the real
+        rendered alpha silhouette. A shadow-shaped artifact that stays
+        identical no matter what's swapped inside the element is
+        box-shadow, not filter — check box-shadow cancellation first.
+     3. #DMS4all's root is pointer-events: none, and every descendant
+        inherits that unless it individually opts back in with
+        pointer-events: auto. An element with pointer-events: none is
+        skipped entirely during hit-testing regardless of z-index, so a
+        click always lands on the next auto element beneath it (or
+        falls through to the board if there isn't one).
+     4. This poster's panels are full-size overlays, not split
+        left/right halves like the Pamphlet fork it was built from —
+        one fork leftover that assumed a two-halves layout (a stray
+        click-catcher div, `.DMS4all-right-click`) was removed since it
+        only added hitbox complexity with no visual purpose here. Worth
+        checking for the same assumption when forking Pamphlet again.
+        `panel.rightpanel` and `.DMS4all-hitzone-unfolded` look similarly
+        unused (rightpanel stays empty; pointer-events on the unfolded
+        hitzone stays permanently off, superseded by
+        `.DMS4all-shadow-unfolded`'s own hitbox) but are kept rather
+        than removed — a prior attempt to remove them also, while
+        rewriting comments, accidentally dropped the `:not(.open)` gate
+        on `.DMS4all-hitzone-folded`'s pointer-events (making it
+        clickable even while open) and broke click behavior. Keep any
+        future comment-only cleanup pass strictly comment-only here:
+        double-check every rule with a state-gated pointer-events value
+        stays gated exactly as before.
+     ================================================================ -->
+<div
+  id="DMS4all"
+  class="poster DMS4all"
+  style="
+    top: -50%;
+    left: 3.3%;
+    transform: rotate(-11deg) scale(0.15);
+    --posterRestScale: 0.15;
+  "
+>
+  <style>
+    :root {
+      --dmsPanelW: 750px;
+      --dmsPanelH: 1125px;
+      --dmsPolaroidMatch: 3.3;
+
+      /* Polaroid 1: resting position */
+      --dmsPolaroid1-start-x: -30px;
+      --dmsPolaroid1-start-y: 40px;
+      --dmsPolaroid1-start-rotate: -3deg;
+
+      /* Polaroid 1: slid-out (active) position */
+      --dmsPolaroid1-end-x: -373px;
+      --dmsPolaroid1-end-y: -220px;
+      --dmsPolaroid1-end-rotate: 9deg;
+
+      /* Polaroid 2: resting position — independent of Polaroid 1 */
+      --dmsPolaroid2-start-x: -30px;
+      --dmsPolaroid2-start-y: 220px;
+      --dmsPolaroid2-start-rotate: -11deg;
+
+      /* Polaroid 2: slid-out (active) position */
+      --dmsPolaroid2-end-x: -433px;
+      --dmsPolaroid2-end-y: 90px;
+      --dmsPolaroid2-end-rotate: -7deg;
+
+      --dmsCardAspect: 1.5; /* DMScard.png aspect ratio */
+
+      /* Card: resting position */
+      --dmsCard-start-x: 260px;
+      --dmsCard-start-y: -400px;
+      --dmsCard-start-rotate: 18deg;
+
+      /* Card: slid-out (active) position */
+      --dmsCard-end-x: 1190px;
+      --dmsCard-end-y: 0px;
+      --dmsCard-end-rotate: 14deg;
+
+      /* Folded/unfolded hitzone + shadow position & size — shared so
+         fitting the hitzone to the visible card automatically keeps
+         the shadow in sync. Rectangles relative to #DMS4all's own
+         top-left corner. */
+      --dmsFoldedBoxTop: 60px;
+      --dmsFoldedBoxLeft: 140px;
+      --dmsFoldedBoxWidth: 610px;
+      --dmsFoldedBoxHeight: 1000px;
+      --dmsFoldedBoxRotate: 0deg;
+
+      --dmsUnfoldedBoxTop: 60px;
+      --dmsUnfoldedBoxLeft: 140px;
+      --dmsUnfoldedBoxWidth: 610px;
+      --dmsUnfoldedBoxHeight: 1000px;
+      --dmsUnfoldedBoxRotate: 0deg;
+
+      /* Decorative shadow look — shared by both fold states (same
+         physical object, just folded differently) */
+      --dmsShadowFoldedWidth: 560px;
+      --dmsShadowFoldedHeight: 920px;
+      --dmsShadowUnfoldedWidth: 1170px;
+      --dmsShadowUnfoldedHeight: 890px;
+      --dmsShadowUnfoldedRotate: 8deg;
+
+      /* Unfolded shadow's own top/left — independent of
+         --dmsUnfoldedBoxTop/-Left above, which the hitzone uses
+         instead, so the shadow box can be repositioned on its own */
+      --dmsShadowUnfoldedTop: 115px;
+      --dmsShadowUnfoldedLeft: 130px;
+
+      --dmsShadowOffsetX: 80px; /* cast-shadow offset — not the box's own position */
+      --dmsShadowOffsetY: 15px;
+      --dmsShadowBlur: 100px;
+      --dmsShadowSpread: 0px;
+      --dmsShadowColor: rgba(0, 0, 0, 0.45);
+    }
+
+    .DMS4all {
+      padding: 0;
+      width: var(--dmsPanelW);
+      height: var(--dmsPanelH);
+      overflow: visible;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+      background: transparent;
+      pointer-events: none;
+      box-shadow: none; /* cancels the generic .poster box-shadow — see IMPORTANT NOTES above */
+    }
+
+    .DMS4all .panel {
+      position: absolute;
+      top: 0;
+      width: var(--dmsPanelW);
+      height: var(--dmsPanelH);
+      transform-style: preserve-3d;
+      border: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.8s ease;
+      backface-visibility: hidden;
+    }
+
+    .DMS4all .panel .face {
+      position: absolute;
+      inset: 0;
+      padding: 0;
+      backface-visibility: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .DMS4all .panel .face .face-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    .DMS4all .panel .face img {
+      width: auto;
+      height: auto;
+      max-width: var(--dmsPanelW);
+      max-height: var(--dmsPanelH);
+      object-fit: cover;
+      transform: scale(1);
+      will-change: transform;
+    }
+
+    .DMS4all .panel .face.back {
+      transform: rotateY(180deg);
+    }
+
+    .DMS4all .panel.leftpanel .face.front {
+      background-color: transparent;
+    }
+
+    .DMS4all .panel.coverpanel {
+      transform-origin: right center;
+      left: 0;
+      z-index: 3;
+    }
+    .DMS4all .panel.coverpanel.duplicate {
+      z-index: 5;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: right center;
+      transform-style: preserve-3d;
+    }
+    .DMS4all .panel.leftpanel {
+      transform-origin: right center;
+      left: 0;
+      z-index: 2;
+    }
+    .DMS4all .panel.rightpanel {
+      transform-origin: left center;
+      left: 0;
+      z-index: 2;
+    }
+
+    .DMS4all:not(.open) .panel.coverpanel,
+    .DMS4all:not(.open) .panel.coverpanel.duplicate {
+      transform: rotateY(0deg);
+    }
+    .DMS4all:not(.open) .panel.leftpanel {
+      transform: rotateY(0deg);
+    }
+    .DMS4all:not(.open) .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    .DMS4all.open .panel.coverpanel,
+    .DMS4all.open .panel.coverpanel.duplicate {
+      transform: rotateY(180deg);
+    }
+    .DMS4all.open .panel.leftpanel {
+      transform: rotateY(0deg);
+    }
+    .DMS4all.open .panel.rightpanel {
+      transform: rotateY(0deg);
+    }
+
+    #DMS4all {
+      overflow: visible;
+      background: transparent !important;
+      border: none !important;
+      outline: none !important;
+      isolation: isolate;
+    }
+
+    .poster-active.DMS4all {
+      left: 21% !important;
+      top: 57% !important;
+      transform: translate(-50%, -50%) rotate(-8deg) scale(1) !important;
+      z-index: 100 !important;
+    }
+
+    #DMS4all .shadow-square1,
+    #DMS4all .shadow-square2 {
+      position: absolute;
+      top: 53%;
+      left: 45%;
+      width: calc(115px * var(--dmsPolaroidMatch));
+      height: calc(115px * var(--dmsPolaroidMatch));
+      z-index: 3; /* behind polaroid */
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+
+    #DMS4all .DMSpolaroid1,
+    #DMS4all .DMSpolaroid2 {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: calc(138px * var(--dmsPolaroidMatch));
+      height: calc(138px * var(--dmsPolaroidMatch));
+      z-index: 4; /* in front of shadow */
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+    #DMS4all .DMSpolaroid1 img,
+    #DMS4all .DMSpolaroid2 img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+    /* Invisible clickable overlays — match each polaroid's rescaled size */
+    #DMS4all .DMSpolaroid1-click,
+    #DMS4all .DMSpolaroid2-click {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: calc(138px * var(--dmsPolaroidMatch));
+      height: calc(138px * var(--dmsPolaroidMatch));
+      z-index: 10; /* always on top */
+      pointer-events: auto;
+      background: transparent;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* The card — no shadow-square backing like the polaroids have.
+       z-index 20/21 puts it above every panel and both polaroids. */
+    #DMS4all .DMScard {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: calc(138px * var(--dmsPolaroidMatch) * var(--dmsCardAspect));
+      height: calc(138px * var(--dmsPolaroidMatch));
+      z-index: 20;
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+      will-change: transform;
+    }
+    #DMS4all .DMScard img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+    /* Invisible clickable overlay — same shim pattern as the polaroids */
+    #DMS4all .DMScard-click {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: calc(138px * var(--dmsPolaroidMatch) * var(--dmsCardAspect));
+      height: calc(138px * var(--dmsPolaroidMatch));
+      z-index: 21;
+      pointer-events: auto;
+      background: transparent;
+      transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    /* Polaroid 1 — resting position. Reads --dmsPolaroid1-start-*. */
+    #DMS4all .shadow-square1,
+    #DMS4all .DMSpolaroid1,
+    #DMS4all .DMSpolaroid1-click {
+      transform: translate(
+          calc(-50% + var(--dmsPolaroid1-start-x)),
+          calc(-50% + var(--dmsPolaroid1-start-y))
+        )
+        rotate(var(--dmsPolaroid1-start-rotate));
+    }
+
+    /* Polaroid 2 — resting position. Reads --dmsPolaroid2-start-*. */
+    #DMS4all .shadow-square2,
+    #DMS4all .DMSpolaroid2,
+    #DMS4all .DMSpolaroid2-click {
+      transform: translate(
+          calc(-50% + var(--dmsPolaroid2-start-x)),
+          calc(-50% + var(--dmsPolaroid2-start-y))
+        )
+        rotate(var(--dmsPolaroid2-start-rotate));
+    }
+
+    /* Polaroid 1 — slid-out (active) position. Reads --dmsPolaroid1-end-*. */
+    #DMS4all.poster-active .shadow-square1,
+    #DMS4all.poster-active .DMSpolaroid1,
+    #DMS4all.poster-active .DMSpolaroid1-click {
+      transform: translate(
+          calc(-50% + var(--dmsPolaroid1-end-x)),
+          calc(-50% + var(--dmsPolaroid1-end-y))
+        )
+        rotate(var(--dmsPolaroid1-end-rotate));
+      transition-delay: 0.7s;
+    }
+
+    /* Polaroid 2 — slid-out (active) position. Reads --dmsPolaroid2-end-*. */
+    #DMS4all.poster-active .shadow-square2,
+    #DMS4all.poster-active .DMSpolaroid2,
+    #DMS4all.poster-active .DMSpolaroid2-click {
+      transform: translate(
+          calc(-50% + var(--dmsPolaroid2-end-x)),
+          calc(-50% + var(--dmsPolaroid2-end-y))
+        )
+        rotate(var(--dmsPolaroid2-end-rotate));
+      transition-delay: 0.7s;
+    }
+
+    /* Card — resting position. Reads --dmsCard-start-*. */
+    #DMS4all .DMScard,
+    #DMS4all .DMScard-click {
+      transform: translate(
+          calc(-50% + var(--dmsCard-start-x)),
+          calc(-50% + var(--dmsCard-start-y))
+        )
+        rotate(var(--dmsCard-start-rotate));
+    }
+
+    /* Card — slid-out (active) position. Reads --dmsCard-end-*. Delay is
+       0.2s, not the polaroids' 0.7s, since this is tied to the poster
+       becoming active rather than the .open fold-out animation. */
+    #DMS4all.poster-active .DMScard,
+    #DMS4all.poster-active .DMScard-click {
+      transform: translate(
+          calc(-50% + var(--dmsCard-end-x)),
+          calc(-50% + var(--dmsCard-end-y))
+        )
+        rotate(var(--dmsCard-end-rotate));
+      transition-delay: 0.2s;
+    }
+
+    /* Mobile: same idea at a smaller box size, kept as its own simpler
+       override rather than wired to the variables above. */
+    @media (max-width: 640px) {
+      #DMS4all .shadow-square1,
+      #DMS4all .shadow-square2,
+      #DMS4all .DMSpolaroid1,
+      #DMS4all .DMSpolaroid2 {
+        width: 72px;
+        height: 72px;
+      }
+      #DMS4all .shadow-square1,
+      #DMS4all .DMSpolaroid1,
+      #DMS4all .DMSpolaroid1-click {
+        transform: translate(-50%, -50%) rotate(-3deg);
+      }
+      #DMS4all .shadow-square2,
+      #DMS4all .DMSpolaroid2,
+      #DMS4all .DMSpolaroid2-click {
+        transform: translate(-50%, calc(-50% + 90px)) rotate(4deg);
+      }
+      #DMS4all.poster-active .shadow-square1,
+      #DMS4all.poster-active .DMSpolaroid1,
+      #DMS4all.poster-active .DMSpolaroid1-click {
+        transform: translate(calc(-50% + 110px), -50%) rotate(9deg);
+      }
+      #DMS4all.poster-active .shadow-square2,
+      #DMS4all.poster-active .DMSpolaroid2,
+      #DMS4all.poster-active .DMSpolaroid2-click {
+        transform: translate(calc(-50% + 110px), calc(-50% + 90px))
+          rotate(-7deg);
+      }
+    }
+
+    .DMS4all-hitzone-folded,
+    .DMS4all-hitzone-unfolded {
+      position: absolute;
+      z-index: 200; /* above every panel, polaroid, and the card (z-index 21) */
+      cursor: pointer;
+      pointer-events: none; /* only the state-matching rule below is auto */
+    }
+    .DMS4all-hitzone-folded {
+      top: var(--dmsFoldedBoxTop);
+      left: var(--dmsFoldedBoxLeft);
+      width: var(--dmsFoldedBoxWidth);
+      height: var(--dmsFoldedBoxHeight);
+      transform: rotate(var(--dmsFoldedBoxRotate));
+    }
+    .DMS4all-hitzone-unfolded {
+      top: var(--dmsUnfoldedBoxTop);
+      left: var(--dmsUnfoldedBoxLeft);
+      width: var(--dmsUnfoldedBoxWidth);
+      height: var(--dmsUnfoldedBoxHeight);
+      transform: rotate(var(--dmsUnfoldedBoxRotate));
+    }
+
+    .DMS4all-shadow-folded,
+    .DMS4all-shadow-unfolded {
+      position: absolute;
+      z-index: 1;
+      background: transparent;
+      pointer-events: none;
+    }
+    .DMS4all-shadow-folded {
+      top: var(--dmsFoldedBoxTop);
+      left: var(--dmsFoldedBoxLeft);
+      width: var(--dmsShadowFoldedWidth);
+      height: var(--dmsShadowFoldedHeight);
+      transform: rotate(var(--dmsFoldedBoxRotate));
+      box-shadow: var(--dmsShadowOffsetX) var(--dmsShadowOffsetY)
+        var(--dmsShadowBlur) var(--dmsShadowSpread) var(--dmsShadowColor);
+    }
+    .DMS4all-shadow-unfolded {
+      top: var(--dmsShadowUnfoldedTop);
+      left: var(--dmsShadowUnfoldedLeft);
+      width: var(--dmsShadowUnfoldedWidth);
+      height: var(--dmsShadowUnfoldedHeight);
+      transform: rotate(var(--dmsShadowUnfoldedRotate));
+      box-shadow: var(--dmsShadowOffsetX) var(--dmsShadowOffsetY)
+        var(--dmsShadowBlur) var(--dmsShadowSpread) var(--dmsShadowColor);
+    }
+    /* Only show the shadow matching the currently-visible fold state */
+    .DMS4all.open .DMS4all-shadow-folded {
+      display: none;
+    }
+    .DMS4all:not(.open) .DMS4all-shadow-unfolded {
+      display: none;
+    }
+
+    .poster-active.DMS4all.open .DMS4all-shadow-unfolded {
+      pointer-events: auto;
+    }
+
+    .DMS4all:not(.open) .DMS4all-hitzone-folded {
+      pointer-events: auto; /* the only way to trigger opening */
+    }
+
+    .DMS4all.open .DMS4all-hitzone-unfolded {
+      pointer-events: none; /* superseded by .DMS4all-shadow-unfolded above */
+    }
+  </style>
+
+  <div class="DMS4all-shadow-folded"></div>
+  <div class="DMS4all-shadow-unfolded"></div>
+
+  <!-- Cover Panel -->
+  <div class="panel coverpanel">
+    <div class="face front">
+      <div class="face-content"></div>
+    </div>
+    <div class="face back">
+      <div class="face-content">
+        <img src="Assets/DMS/DMSright.png" alt="DMS Right" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Duplicate Cover Panel -->
+  <div class="panel coverpanel duplicate">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/DMS/DMScover.png" alt="DMS Cover Duplicate" />
+      </div>
+    </div>
+    <div class="face back">
+      <div class="face-content"></div>
+    </div>
+  </div>
+
+  <!-- Inside Left Panel -->
+  <div class="panel leftpanel">
+    <div class="face front">
+      <div class="face-content">
+        <img src="Assets/DMS/DMSleft.png" alt="DMS Left" />
+      </div>
+    </div>
+    <div class="face back"></div>
+  </div>
+
+  <!-- Inside Right Panel -->
+  <div class="panel rightpanel">
+    <div class="face front"></div>
+    <div class="face back"></div>
+  </div>
+
+  <!-- Shadow square behind polaroid 1 -->
+  <div class="shadow-square1"></div>
+
+  <!-- DMS4all Polaroid 1 -->
+  <div class="DMSpolaroid1">
+    <img
+      src="Assets/DMS/DMSpolaroid1.png"
+      alt="DMS4all Polaroid 1"
+      decoding="async"
+      fetchpriority="low"
+    />
+  </div>
+  <!-- Overlay shim for correct click behavior -->
+  <div class="DMSpolaroid1-click"></div>
+
+  <!-- Shadow square behind polaroid 2 -->
+  <div class="shadow-square2"></div>
+
+  <!-- DMS4all Polaroid 2 — start/end position set independently via
+       --dmsPolaroid2-start-*/-end-* in the <style> block above -->
+  <div class="DMSpolaroid2">
+    <img
+      src="Assets/DMS/DMSpolaroid2.png"
+      alt="DMS4all Polaroid 2"
+      decoding="async"
+      fetchpriority="low"
+    />
+  </div>
+  <!-- Overlay shim for correct click behavior -->
+  <div class="DMSpolaroid2-click"></div>
+
+  <div class="DMScard">
+    <img
+      src="Assets/DMS/DMScard.png"
+      alt="DMS4all Card"
+      decoding="async"
+      fetchpriority="low"
+    />
+  </div>
+  <!-- Overlay shim for correct click behavior -->
+  <div class="DMScard-click"></div>
+
+  <div class="DMS4all-hitzone-folded"></div>
+  <div class="DMS4all-hitzone-unfolded"></div>
+</div>
