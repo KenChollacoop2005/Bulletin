@@ -21,7 +21,6 @@ const posterFiles = [
   "Posters/SafeSlip.html",
   "Posters/CD-Saturn.html",
   "Posters/GPSolar.html",
-  "Posters/SlantFold.html",
   "Posters/FloppyCase.html",
 ];
 // Overlay HTML files (like posters, but rendered on top of corkboard)
@@ -155,6 +154,13 @@ document.addEventListener(
 async function loadPosters() {
   for (const file of posterFiles) {
     const response = await fetch(file);
+    // A missing file's 404 page must never be injected — GitHub Pages'
+    // 404 page ships its own <style> (gray body background) and a big
+    // "404", which would land in the middle of the board.
+    if (!response.ok) {
+      console.warn(`Skipping ${file}: HTTP ${response.status}`);
+      continue;
+    }
     const html = await response.text();
     corkboard.insertAdjacentHTML("beforeend", html);
   }
@@ -165,6 +171,10 @@ async function loadOverlays() {
   const overlayLayer = corkboard;
   for (const file of overlayFiles) {
     const response = await fetch(file);
+    if (!response.ok) {
+      console.warn(`Skipping ${file}: HTTP ${response.status}`);
+      continue;
+    }
     const html = await response.text();
     overlayLayer.insertAdjacentHTML("beforeend", html);
   }

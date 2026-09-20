@@ -69,7 +69,7 @@
 
   // Per-disk skins — see "ADDING NEW DISKS AND SKINS" at the bottom of this file
   const DISK_PLACEHOLDER_SRC =
-    "Assets/FloppyDiskCodeBase/FloppyDisks/FloppyDiskPlaceholder.png";
+    "Assets/FloppyDiskCodeBase/FloppyDiskPlaceholder.png";
   const DISK_SKINS = {
     "1-1": "Assets/FloppyDiskCodeBase/FloppyDisks/Floppy1-1.png",
     "1-2": "Assets/FloppyDiskCodeBase/FloppyDisks/Floppy1-2.png",
