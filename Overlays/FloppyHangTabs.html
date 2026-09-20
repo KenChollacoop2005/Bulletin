@@ -1,0 +1,33 @@
+<!-- Same box as Posters/FloppyCase.html's #FloppyCase (1370x500, left 18%,
+     top 61.5%, scale(0.2) about its center), just raised by --rise. Tweak
+     the height here; to move it with the case, change top/left to match. -->
+<div
+  class="overlay overlay-floppyhangtabs"
+  style="
+    --rise: 47px;
+    top: calc(61.5% - var(--rise));
+    left: 18%;
+    width: 1370px;
+    height: 500px;
+    transform: rotate(0deg) scale(0.2);
+    transform-origin: center;
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    background-color: transparent;
+  "
+>
+  <img
+    src="Assets/Overlays/FloppyHangTabs.png"
+    alt="Floppy hang tabs"
+    style="
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    "
+  />
+</div>

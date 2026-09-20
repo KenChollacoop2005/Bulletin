@@ -29,6 +29,7 @@ const overlayFiles = [
   "Overlays/SatCD-Tape.html",
   "Overlays/SafeSlipPin.html",
   "Overlays/DMSPin.html",
+  "Overlays/FloppyHangTabs.html",
 ];
 
 // ============================================================

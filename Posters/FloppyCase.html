@@ -57,10 +57,16 @@
         selector. A new image nested in .FloppyCrt needs 3+ classes of
         its own (see .FloppyCase .FloppyCrt .FloppyCrtMosaicTitle) to
         actually win.
+     10. opacity: 0 does NOT stop pointer events. The CRT sits parked far
+        off to the left while hidden, and any child with pointer-events:
+        auto (FloppyCrtHitbox) there catches hover/clicks over empty
+        corkboard and lights up the whole poster's hover glow. Such
+        children must be pointer-events: none until .crt-visible.
 
      See memory: poster-shadow-glow-prescale for the box-shadow/filter
-     pre-scale pattern used throughout (shadows only shown once active,
-     so plain literal values, no rest-scale compensation needed here).
+     pre-scale pattern used throughout. The case's RESTING shadow divides
+     its on-screen values by --posterRestScale (0.2); the active-state
+     shadows are plain literals since active scale is ~1.
      ================================================================ -->
 <div
   class="poster FloppyCase"
@@ -81,7 +87,16 @@
       --floppyPanelW: 1370px;
       --floppyPanelH: 500px;
 
-      /* Case shadow — active only. */
+      /* Case shadow at rest — ON-SCREEN values (SafeSlip's resting shadow
+         is 0 5px 10px .3; the case is bigger, so this is stronger). The
+         rule divides them by --posterRestScale, since filter is computed
+         before the poster's own scale() — see memory
+         poster-shadow-glow-prescale. */
+      --floppyRestShadowOffsetY: 9px;
+      --floppyRestShadowBlur: 14px;
+      --floppyRestShadowColor: rgba(0, 0, 0, 0.6);
+
+      /* Case shadow — active only (plain literals, active scale is ~1). */
       --floppyShadowOffsetY: 15px;
       --floppyShadowBlur: 32px;
       --floppyShadowColor: rgba(0, 0, 0, 0.55);
@@ -260,7 +275,11 @@
 
     .FloppyCase .FloppyCaseBase {
       z-index: 0;
-      filter: none; /* shadow only once active */
+      filter: drop-shadow(
+        0 calc(var(--floppyRestShadowOffsetY) / var(--posterRestScale, 1))
+          calc(var(--floppyRestShadowBlur) / var(--posterRestScale, 1))
+          var(--floppyRestShadowColor)
+      ); /* resting shadow, rest-scale compensated; the active rule below overrides it */
     }
     /* z-index 1-100 reserved for the disc stack */
     .FloppyCase .FloppyCaseLid {
@@ -846,10 +865,13 @@
       width: var(--crtHitboxWidth);
       height: var(--crtHitboxHeight);
       z-index: 10;
+      pointer-events: none; /* opacity:0 doesn't block clicks — while the CRT is parked off-screen this box would otherwise catch hover/clicks over empty corkboard */
+    }
+    .FloppyCase.crt-visible .FloppyCrtHitbox {
       pointer-events: auto;
     }
     .FloppyCase.crt-text-active .FloppyCrtHitbox {
-      pointer-events: none;
+      pointer-events: none; /* must stay after the crt-visible rule (same specificity) */
     }
 
     .poster-active.FloppyCase {
