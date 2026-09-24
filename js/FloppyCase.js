@@ -382,6 +382,7 @@
   const TEXT_PROJECT_SCREENS = {
     "3-1": {
       title: "ENTRY 3-1",
+      titleImage: "Assets/FloppyDiskCodeBase/CrtMosiacTitle.png",
       intro: [
         "Project Mosaic isn't a game I built once and finished — it's the project I keep coming back to, three separate times across three different eras of learning to code, using it as a testing ground for whatever I'd just picked up. Type systems, procedural generation with guaranteed invariants, deterministic simulation, automated regression testing, a maintained decision log — each one landed in this codebase specifically because I'd just learned it and wanted a real place to prove I actually understood it, not just that I could follow a tutorial.",
         "What's here now is Floor 1 of a fully playtested, solo-built ASCII roguelike: a hermit crab navigating procedurally generated underwater dungeons, scavenging junk-drawer items — bottle caps, fishing hooks, glass shards — that blindly identify on pickup, permanently equip across seven slots, and never let you see a run coming twice. No sprites, no hand-drawn tiles — every enemy, every item, every room is text and Unicode, because the constraint was chosen, not settled for.",
@@ -525,6 +526,132 @@
       nextDisk: { stackNumber: 3, diskIndex: 2 },
       nextDiskNotice: "DISK FULL — INSERT NEXT FLOPPY TO CONTINUE",
     },
+
+    // Particle Playground — leaner than Mosaic: no stats strip, three
+    // sections (one per simulation), then a screenshot + external link.
+    // Own palette (see [data-entry="1-2"] in Posters/FloppyCase.html);
+    // each section's `accent` recolors its heading/cards.
+    "1-2": {
+      title: "PARTICLE SIM",
+      titleText: "PARTICLE SIM", // text stand-in until a real title graphic exists; swap for titleImage later
+      intro: [
+        "I got interested in this because of a slime mold. <em>Physarum polycephalum</em> is the mold behind the Tokyo rail experiment: researchers put food at the stations, let it grow, and watched it converge on a network almost identical to what human engineers had designed by hand over decades. A single-celled organism finding efficient structure out of nothing but a few local rules. I wanted to see that happen myself, not just read about it.",
+        "Building it pulled me into particle-based simulation more broadly: flocking, spatial hashing, real-time audio analysis, each one its own small rabbit hole in making a few simple-minded local rules add up to something that looks intelligent from a distance. Boids and the audio-reactive mode grew out of that same curiosity, not out of a plan. It's all live, so if you want to mess around with the particles yourself, the Playground is linked at the bottom of this page, and if it ever grows into something more, that will be linked there too.",
+      ],
+      // Bottom-of-page TOC entry: scrolls to the very end (see tocBottom)
+      tocBottom: "Try It",
+      sections: [
+        {
+          id: "crt-text-section-1",
+          heading: "Slime Mold",
+          accent: "var(--crtPpTeal)",
+          paragraphs: [
+            "Based on Jeff Jones' 2010 model of Physarum. Each agent does one thing: sniff the scent trail at three points ahead of it, turn toward the strongest, step forward, and leave scent behind. Nobody draws the network. It emerges from that one rule feeding back on itself.",
+            "Up to three species can share the world, each with its own scent channel and color. Rivals form braided, interleaving highways that never share a lane.",
+          ],
+          cards: [
+            {
+              title: "Trail map as raw memory",
+              description:
+                "The scent trail is a Float32Array, not canvas pixels, so agents read and write plain memory. The only canvas work per frame is one putImageData and one scaled drawImage.",
+              spec: "250,000 agents in plain JavaScript on the CPU, ~15 ms per step.",
+            },
+            {
+              title: "Zero trig in the hot loop",
+              description:
+                "Headings are stored as unit vectors and turned with precomputed sine and cosine. The first version called Math.cos and Math.sin eight times per agent per step. Removing them made each step about 4.5x faster.",
+              spec: "~30 ms down to ~6.5 ms at 80,000 agents.",
+            },
+            {
+              title: "Denormal float protection",
+              description:
+                "Trail values that decay toward zero get flushed to exactly 0. Left alone they slide into denormal floats, which x86 CPUs handle 10 to 100 times slower, and the frame rate quietly falls apart after about a minute.",
+              spec: "Flushed to zero, so the frame rate stays flat over time.",
+            },
+            {
+              title: "The trail-saturation bug",
+              description:
+                "The first version collapsed the whole colony into one thick tube: the busiest strand kept getting stronger until it swallowed every other one. Capping each cell's scent keeps weaker branches alive, which is what turns a tube into a network.",
+              spec: "Found by running headless for 900 steps per config and comparing screenshots.",
+            },
+          ],
+        },
+        {
+          id: "crt-text-section-2",
+          heading: "Boids",
+          accent: "var(--crtPpAmber)",
+          paragraphs: [
+            "Craig Reynolds' three rules: don't crowd your neighbors, match their heading, stay close to them. There's no leader and no global plan. Flocks form, split and merge on their own.",
+          ],
+          cards: [
+            {
+              title: "Spatial hash for neighbor search",
+              description:
+                "The screen is split into cells the size of the perception radius and rebuilt every frame with a counting sort. Each boid only checks the 3x3 block of cells around it instead of every other boid.",
+              spec: "600 boids: ~24,000 pair checks instead of 359,400.",
+            },
+            {
+              title: "A torus, including the math",
+              description:
+                "Boids wrap around the edges, and neighbor distances wrap too, so a flock crossing an edge stays one flock instead of snapping apart. Cohesion averages relative offsets, not absolute positions, which is the detail that makes wrapping correct.",
+            },
+            {
+              title: "Double-buffered velocities",
+              description:
+                "Every boid steers from the same snapshot of velocities, so update order can't bias the flock. State lives in preallocated typed arrays, so nothing is created per frame and there are no garbage-collection hitches.",
+            },
+            {
+              title: "One draw call for the flock",
+              description:
+                "Every triangle goes into one path, rotated straight from the velocity vector, with no per-boid save, rotate and restore.",
+              spec: "3,000 boids: ~4.4 ms per frame.",
+            },
+          ],
+        },
+        {
+          id: "crt-text-section-3",
+          heading: "Audio Reactive",
+          tocLabel: "Audio",
+          accent: "var(--crtPpRose)",
+          paragraphs: [
+            "Live frequency analysis drives three rings of particles: bass snaps the inner ring outward on every kick, mids spin and brighten the middle ring, treble jitters the outer ring. The source can be the mic, a local audio file, or a demo beat the page synthesizes itself.",
+          ],
+          cards: [
+            {
+              title: "A drum machine written in code",
+              description:
+                "The demo beat is a 4-bar groove (kick, snare, hats, filtered sawtooth bass, chord stabs) synthesized live in Web Audio, so the mode works with no mic and no music file. It's scheduled against the audio clock with a look-ahead timer, which keeps timing tight even though JavaScript timers are sloppy.",
+              spec: "124 BPM, zero audio files.",
+            },
+            {
+              title: "Energy-based beat detection",
+              description:
+                "Current bass energy is compared against the average of the last second, and a beat fires when it spikes past that average times a threshold. A noise floor and a refractory window make one kick count as one beat, and the threshold is drawn live on the meter.",
+            },
+            {
+              title: "Tempo from beat gaps",
+              description:
+                "The estimate is the median of recent beat gaps, which shrugs off missed or extra beats, averaged with every gap near the median to cancel out frame-timing jitter.",
+              spec: "Reads 124 to 125 BPM against a true 124.",
+            },
+            {
+              title: "Browser rules, handled properly",
+              description:
+                "Audio only starts from a click. Switching modes stops the mic tracks, the file and the synth and closes the AudioContext, so the recording indicator turns off right away. Mic failures get specific messages: blocked, not found, busy, or an insecure page.",
+              spec: "Analyzed locally. Nothing is recorded or sent anywhere.",
+            },
+          ],
+        },
+      ],
+      screenshot: {
+        src: "Assets/FloppyDiskCodeBase/ProjectScreens/Screen1-2.png",
+        alt: "Particle Playground running the slime mold mode",
+      },
+      externalLink: {
+        label: "VISIT THE PARTICLE PLAYGROUND",
+        url: "https://kenchollacoop2005.github.io/particle_playground/",
+      },
+    },
   };
 
   const CRT_TOC_SCROLL_DURATION_MS = 900; // fixed — every jump takes the same time regardless of distance
@@ -558,12 +685,18 @@
   function buildTextScreenHtml(entry) {
     // tocLabel (when set) is a short TOC-only stand-in — the section's
     // own on-page heading is never shortened.
-    const toc = entry.sections
-      .map(
-        (s, i) =>
-          `<div class="FloppyCrtTextScreenTocLink" data-target="${s.id}"><span class="FloppyCrtTextScreenTocNum">${String(i + 1).padStart(2, "0")}</span>${s.tocLabel || s.heading}</div>`,
-      )
-      .join("");
+    // entry.tocBottom (optional) adds one last TOC link that scrolls to
+    // the very bottom of the page instead of to a section.
+    const toc =
+      entry.sections
+        .map(
+          (s, i) =>
+            `<div class="FloppyCrtTextScreenTocLink" data-target="${s.id}"><span class="FloppyCrtTextScreenTocNum">${String(i + 1).padStart(2, "0")}</span>${s.tocLabel || s.heading}</div>`,
+        )
+        .join("") +
+      (entry.tocBottom
+        ? `<div class="FloppyCrtTextScreenTocLink" data-scroll="bottom"><span class="FloppyCrtTextScreenTocNum">${String(entry.sections.length + 1).padStart(2, "0")}</span>${entry.tocBottom}</div>`
+        : "");
     const intro = entry.intro
       ? `<div class="FloppyCrtTextScreenIntro">${entry.intro.map((p) => `<p>${p}</p>`).join("")}</div>`
       : "";
@@ -580,8 +713,14 @@
       : "";
     const sections = entry.sections
       .map((s) => {
+        // Up to 3 cards share one row; 4+ wrap into 2 columns (a 4th
+        // column would be too narrow). Grids of 4+ are wide enough that
+        // titles need ~2 lines, so they reserve less title height; 1-3
+        // card grids keep the original 3-line reserve (Mosaic).
+        const cols = s.cards ? (s.cards.length <= 3 ? s.cards.length : 2) : 0;
+        const titleMin = s.cards && s.cards.length > 3 ? "2.6em" : "3.9em";
         const cardsHtml = s.cards
-          ? `<div class="FloppyCrtCardGrid" style="--crtCardCount: ${s.cards.length}">${s.cards
+          ? `<div class="FloppyCrtCardGrid" style="--crtCardCount: ${cols}; --crtCardTitleMin: ${titleMin}">${s.cards
               .map(
                 (c) =>
                   `<div class="FloppyCrtCard">
@@ -592,7 +731,12 @@
               )
               .join("")}</div>`
           : "";
-        return `<div class="FloppyCrtTextScreenSection" id="${s.id}">
+        // Optional per-section accent: recolors this section's heading and
+        // card accents (see the entry's [data-entry] block in the HTML)
+        const accentStyle = s.accent
+          ? ` style="--crtTextScreenAccent: ${s.accent}; --crtTextScreenAccentDim: color-mix(in srgb, ${s.accent} 55%, transparent)"`
+          : "";
+        return `<div class="FloppyCrtTextScreenSection" id="${s.id}"${accentStyle}>
             <h3 class="FloppyCrtTextScreenHeading">${s.heading}</h3>
             ${s.paragraphs.map((p) => `<p>${p}</p>`).join("")}
             ${cardsHtml}
@@ -615,18 +759,36 @@
           >&gt;&gt; LOAD NEXT FLOPPY</div>
         </div>`
       : "";
+    // Optional screenshot + external link, rendered after the last
+    // section (where nextDisk's prompt goes). The link is a plain anchor
+    // in a new tab — not the in-system disc handoff nextDisk does.
+    const screenshot = entry.screenshot
+      ? `<figure class="FloppyCrtScreenshot"><img src="${entry.screenshot.src}" alt="${entry.screenshot.alt}" /></figure>`
+      : "";
+    const externalLink = entry.externalLink
+      ? `<div class="FloppyCrtExternalSection">
+          <a
+            class="FloppyCrtNextFloppyPrompt"
+            href="${entry.externalLink.url}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >&gt;&gt; ${entry.externalLink.label}</a>
+        </div>`
+      : "";
+    // Title slot: an image (titleImage) or styled text (titleText) —
+    // each with its own position vars in Posters/FloppyCase.html.
+    const titleGraphic = entry.titleImage
+      ? `<img class="FloppyCrtMosaicTitle" src="${entry.titleImage}" alt="${entry.title}" />`
+      : entry.titleText
+        ? `<div class="FloppyCrtTitleText">${entry.titleText}</div>`
+        : "";
     // No wrapper around intro/sections — the TOC is a CSS float, so they
     // need to be plain sibling blocks to wrap around it correctly.
     // Title div stays empty (reserves its own line-height/margin as a
-    // gap); FloppyCrtMosaicTitle sits there instead (own position vars
-    // in Posters/FloppyCase.html).
+    // gap); the title graphic sits there instead.
     return `
       <div class="FloppyCrtTextScreenTitle"></div>
-      <img
-        class="FloppyCrtMosaicTitle"
-        src="Assets/FloppyDiskCodeBase/CrtMosiacTitle.png"
-        alt="${entry.title}"
-      />
+      ${titleGraphic}
       <div class="FloppyCrtTextScreenBody">
         <div class="FloppyCrtTextScreenToc">
           <div class="FloppyCrtTextScreenTocLabel">CONTENTS</div>
@@ -635,6 +797,8 @@
         ${intro}
         ${stats}
         ${sections}
+        ${screenshot}
+        ${externalLink}
         ${nextFloppyPrompt}
       </div>
     `;
@@ -677,15 +841,21 @@
     thumb.style.transform = `translateY(${scrollPercent * maxThumbTravel}px)`;
   }
 
-  function showTextProjectScreen(poster, entry) {
+  function showTextProjectScreen(poster, entry, key) {
     const textScreen = crtTextScreenEl(poster);
     const viewport = crtTextScreenViewportEl(poster);
     if (!textScreen || !viewport) return;
 
+    // Lets Posters/FloppyCase.html scope per-entry palettes: [data-entry="1-2"]
+    textScreen.dataset.entry = key;
     viewport.innerHTML = buildTextScreenHtml(entry);
 
     viewport.querySelectorAll(".FloppyCrtTextScreenTocLink").forEach((link) => {
       link.addEventListener("click", () => {
+        if (link.dataset.scroll === "bottom") {
+          animateScrollTo(viewport, viewport.scrollHeight - viewport.clientHeight);
+          return;
+        }
         const target = viewport.querySelector(`#${link.dataset.target}`);
         if (!target) return;
         // offsetTop, not getBoundingClientRect — the poster sits inside a
@@ -887,9 +1057,10 @@
   // loads a scrollable text entry instead; otherwise it's a plain <img>
   // swap, with a missing PNG falling back to the text layer's "NO SIGNAL".
   function showProjectScreen(poster, stackNumber, diskIndex) {
-    const textEntry = TEXT_PROJECT_SCREENS[`${stackNumber}-${diskIndex}`];
+    const entryKey = `${stackNumber}-${diskIndex}`;
+    const textEntry = TEXT_PROJECT_SCREENS[entryKey];
     if (textEntry) {
-      showTextProjectScreen(poster, textEntry);
+      showTextProjectScreen(poster, textEntry, entryKey);
       return;
     }
 
@@ -1236,13 +1407,21 @@
   // scrollbar, and a "load next floppy" handoff button. Add one by
   // giving TEXT_PROJECT_SCREENS above a new "stackNumber-diskIndex" key:
   //
-  //   title          — used only as CrtMosiacTitle.png's alt text (the
-  //                    title div itself stays empty; the logo image
-  //                    sits in that gap — see buildTextScreenHtml)
-  //   intro          — array of paragraph strings, untitled, rendered
-  //                    right after the TOC so it wraps beside it
+  //   title          — the title graphic's alt text (the title div
+  //                    itself stays empty; the graphic sits in that gap
+  //                    — see buildTextScreenHtml)
+  //   titleImage     — optional image path for the title graphic
+  //                    (Mosaic); position via --crtMosaicTitle*
+  //   titleText      — optional styled-text title instead (Particle
+  //                    Sim); position/font via --crtTitleText*. Use one
+  //                    or the other.
+  //   intro          — array of paragraph strings (HTML like <em> is
+  //                    fine), untitled, rendered right after the TOC so
+  //                    it wraps beside it
   //   stats          — optional array of { num, label } (4 fit one row
   //                    cleanly, matching the stat-strip's own grid)
+  //   tocBottom      — optional label for one extra, last TOC link that
+  //                    scrolls to the very bottom of the page
   //   sections       — array of:
   //                      id        — anchor id for the TOC's click-to-
   //                                  scroll (unique within the entry)
@@ -1256,11 +1435,27 @@
   //                      cards     — optional array of { title,
   //                                  description, spec? }, rendered as
   //                                  a card grid below the paragraphs
+  //                                  (1-3 cards share one row, 4+
+  //                                  wrap into 2 columns)
+  //                      accent    — optional CSS color (e.g.
+  //                                  "var(--crtPpAmber)") recoloring
+  //                                  this section's heading/cards
+  //   screenshot     — optional { src, alt }, full content-column width,
+  //                    rendered after the last section
+  //   externalLink   — optional { label, url }; a plain new-tab anchor
+  //                    styled like the "load next floppy" button, under
+  //                    the screenshot. Bottom space: --crtExternalBottomPad
   //   nextDisk       — optional { stackNumber, diskIndex }; renders a
   //                    clickable prompt after the last section that
   //                    calls startDiscTravel on that disc exactly like
   //                    a normal hitbox click (see showTextProjectScreen)
   //   nextDiskNotice — optional flavor text shown above that prompt
+  //
+  // PER-ENTRY LOOK: showTextProjectScreen stamps the entry's key on the
+  // screen as data-entry="1-2", so a [data-entry="…"] block in
+  // Posters/FloppyCase.html can override the --crtTextScreen* palette
+  // for just that entry (see the "1-2" block, built from Particle
+  // Playground's own palette, --crtPp*). Mosaic's palette is the default.
   //
   // Everything about SIZE/POSITION — the background box, the scrollable
   // text box, the mosaic-title logo, the scrollbar, the TOC's own
